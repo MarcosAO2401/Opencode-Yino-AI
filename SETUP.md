@@ -28,11 +28,22 @@ Yino necesita un modelo de lenguaje. Tienes dos opciones:
 - **Modelo:** `llama-3.3-70b-versatile` (o `llama-3.1-8b-instant` para menor latencia).
 Groq es OpenAI-compatible, así que funciona tal cual. Solo necesitas internet.
 
-### Opción B — LLM local (privado, sin nube)
-- En tu PC levanta un servidor local, p. ej. Ollama o llama.cpp, en
-  `http://127.0.0.1:8080` (compatible con el endpoint `/completion`).
-- En Yino → **Ajustes** → activa **Usar LLM local**.
-- El teléfono y el servidor deben estar en la misma red/equipo.
+### Opción B — LLM local en el propio teléfono (privado, sin nube, sin PC)
+Funciona si tienes un servidor de inferencia **en el celular**, p. ej. Ollama en
+Termux. La app habla con `127.0.0.1`, así que el servidor debe correr en el
+mismo teléfono (no en otro equipe).
+
+Pasos en el teléfono:
+1. En Termux deja Ollama corriendo y descarga un modelo, p. ej.:
+   `ollama pull llama3` (el servidor queda en `127.0.0.1:11434`).
+2. En Yino → **Ajustes** → activa **Usar LLM local** y pon:
+   - **URL base del LLM local:** `http://127.0.0.1:11434/v1/chat/completions`
+   - **Nombre del modelo local:** `llama3` (el que hayas bajado).
+3. **Guardar servidor local**.
+4. Ya funciona **sin internet ni API key**. El texto nunca sale del teléfono.
+
+Nota: la app es OpenAI-compatible, así que también sirve llama.cpp en modo
+servidor OpenAI (`http://127.0.0.1:8080/v1/chat/completions`).
 
 ## 3. Modelo de voz (solo para el modo Voz / manos libres)
 - Descarga `vosk-model-small-es-0.42` (de la web de Vosk).

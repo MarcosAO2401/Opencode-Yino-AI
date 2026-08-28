@@ -1,76 +1,90 @@
 package com.yino.ai.core.llm
 
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.put
 
 /**
- * Proveedor on-device que habla con un SERVIDOR DE INFERENCIA LOCAL
- * (llama.cpp `/completion`, Ollama `/api/generate` u compatible).
+ * Proveedor on-device OpenAI-compatible. Habla con un SERVIDOR DE INFERENCIA
+ * LOCAL que exponga la API de OpenAI, p. ej.:
+ *  - Ollama en Termux: http://127.0.0.1:11434/v1/chat/completions
+ *  - llama.cpp en modo servidor OpenAI: http://127.0.0.1:8080/v1/chat/completions
  *
- * Ventajas:
- *  - Privado: el texto nunca sale del teléfono.
- *  - No requiere API key ni cuota.
+ * Al ser OpenAI-compatible, SOPORTA tool_calls: el agente ReAct puede ejecutar
+ * acciones (tocar la pantalla, enviar mensajes) 100% en el dispositivo.
  *
- * Requisito: un motor GGUF corriendo en el dispositivo. Opciones reales:
- *  - llama.cpp-server (binario nativo) vía Termux, apuntando a 127.0.0.1:8080.
- *  - Servidor embebido en la app (futuro: AiKit / llama.cpp JNI).
- *
- * La "ruta del modelo local" en Ajustes se interpreta como la URL base del
- * servidor (por defecto http://127.0.0.1:8080).
+ * Ventajas: privado (el texto nunca sale del telefono) y sin API key ni cuota.
  */
 class LocalLLMProvider(
-    private val baseUrl: String = "http://127.0.0.1:8080",
+    private val baseUrl: String = "http://127.0.0.1:11434/v1/chat/completions",
+    private val model: String = "llama3",
 ) : LLMProvider {
 
-    override val id: String = "local:$baseUrl"
-    override val supportsTools: Boolean = false
+    override val id: String = "local:$model"
+    override val supportsTools: Boolean = true
 
-    private val client = HttpClient(OkHttp) { expectSuccess = true }
     private val json = Json { ignoreUnknownKeys = true }
+    private val client = HttpClient(OkHttp) {
+        install(ContentNegotiation) { json(json) }
+    }
+
+    @Serializable
+    private data class Req(
+        val model: String,
+        val messages: List<Msg>,
+        val temperature: Float,
+        val tools: List<Tool>? = null,
+    )
+
+    @Serializable private data class Msg(val role: String, val content: String)
+    @Serializable private data class Tool(val type: String = "function", val function: Fun)
+    @Serializable private data class Fun(val name: String, val description: String, val parameters: String)
+
+    @Serializable private data class Resp(val choices: List<Choice>)
+    @Serializable private data class Choice(val message: RespMsg)
+    @Serializable private data class RespMsg(
+        val content: String? = null,
+        val tool_calls: List<ToolCall>? = null,
+    )
+    @Serializable private data class ToolCall(val function: ToolCallFun)
+    @Serializable private data class ToolCallFun(val name: String, val arguments: String)
 
     override suspend fun complete(request: LLMRequest): LLMResult {
+        val tools = if (request.tools.isEmpty()) null else request.tools.map {
+            Tool(function = Fun(it.name, it.description, it.parametersJsonSchema))
+        }
+        val body = Req(
+            model = model,
+            messages = request.messages.map { Msg(it.role.name.lowercase(), it.content) },
+            temperature = request.temperature,
+            tools = tools,
+        )
         return try {
-            val prompt = request.messages.last().content
-            val body = buildJsonObject {
-                put("prompt", prompt)
-                put("temperature", request.temperature.toDouble())
-                put("n_predict", 256)
-                put("stream", false)
-            }.toString()
-
-            val raw = client.post("$baseUrl/completion") {
+            val resp: Resp = client.post(baseUrl) {
                 contentType(ContentType.Application.Json)
+                header("Authorization", "Bearer ")
                 setBody(body)
-            }.bodyAsText()
-
-            LLMResult.Text(parseContent(raw))
+            }.body()
+            val choice = resp.choices.firstOrNull()
+                ?: return LLMResult.Text("(sin respuesta del motor local)")
+            val tc = choice.message.tool_calls?.firstOrNull()
+            if (tc != null) {
+                LLMResult.ToolCall(tc.function.name, tc.function.arguments)
+            } else {
+                LLMResult.Text(choice.message.content ?: "")
+            }
         } catch (e: Exception) {
             LLMResult.Text("(Motor local no disponible en $baseUrl: ${e.message})")
         }
-    }
-
-    override fun stream(request: LLMRequest): Flow<LLMResult> = flow {
-        emit(complete(request))
-    }
-
-    private fun parseContent(raw: String): String = try {
-        val obj = json.parseToJsonElement(raw).jsonObject
-        obj["content"]?.jsonPrimitive?.content
-            ?: obj["response"]?.jsonPrimitive?.content
-            ?: raw
-    } catch (_: Exception) {
-        raw
     }
 }

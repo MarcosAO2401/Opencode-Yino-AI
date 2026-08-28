@@ -32,6 +32,7 @@ fun SettingsScreen(viewModel: YinoViewModel) {
     var baseUrl by remember { mutableStateOf(YinoGraph.secure.llmBaseUrl) }
     var cloudModel by remember { mutableStateOf(YinoGraph.secure.llmModel) }
     var modelPath by remember { mutableStateOf(YinoGraph.secure.localModelPath) }
+    var localModel by remember { mutableStateOf(YinoGraph.secure.localModelName) }
     var wakeWord by remember { mutableStateOf(YinoGraph.secure.wakeWordEnabled) }
     var listening by remember { mutableStateOf(false) }
     var saved by remember { mutableStateOf(false) }
@@ -89,16 +90,23 @@ fun SettingsScreen(viewModel: YinoViewModel) {
             OutlinedTextField(
                 value = modelPath,
                 onValueChange = { modelPath = it },
-                label = { Text("URL del servidor LLM local") },
+                label = { Text("URL base del LLM local (OpenAI-compatible)") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = localModel,
+                onValueChange = { localModel = it },
+                label = { Text("Nombre del modelo local (p. ej. llama3)") },
                 modifier = Modifier.fillMaxWidth(),
             )
             Button(onClick = {
                 YinoGraph.setLocalModelPath(modelPath)
+                YinoGraph.setLocalModelName(localModel)
                 saved = true
             }) { Text("Guardar servidor local") }
             Text(
-                "El LLM local habla con un servidor de inferencia en el dispositivo " +
-                    "(llama.cpp/Ollama en 127.0.0.1:8080). Ver BUILD.md.",
+                "El LLM local habla con un servidor en el propio telefono (Ollama en " +
+                    "Termux: http://127.0.0.1:11434/v1/chat/completions). No usa internet ni API key.",
                 style = MaterialTheme.typography.bodySmall,
             )
         }

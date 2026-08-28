@@ -44,6 +44,10 @@ class SecureSettings(context: Context) {
         get() = prefs.getString(KEY_MODEL, "") ?: ""
         set(value) = prefs.edit().putString(KEY_MODEL, value).apply()
 
+    var localModelName: String
+        get() = prefs.getString(KEY_MODEL_NAME, DEFAULT_LOCAL_MODEL) ?: DEFAULT_LOCAL_MODEL
+        set(value) = prefs.edit().putString(KEY_MODEL_NAME, value).apply()
+
     var voskModelPath: String
         get() = prefs.getString(KEY_VOSK, DEFAULT_VOSK) ?: DEFAULT_VOSK
         set(value) = prefs.edit().putString(KEY_VOSK, value).apply()
@@ -64,5 +68,6 @@ class SecureSettings(context: Context) {
             "/storage/emulated/0/Android/data/com.yino.ai/files/vosk-model-small-es-0.42"
         const val DEFAULT_URL = "https://api.openai.com/v1/chat/completions"
         const val DEFAULT_MODEL = "gpt-4o-mini"
+        const val DEFAULT_LOCAL_MODEL = "llama3"
     }
 }
