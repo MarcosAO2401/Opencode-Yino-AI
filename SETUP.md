@@ -22,6 +22,12 @@ Yino necesita un modelo de lenguaje. Tienes dos opciones:
 - Pulsa **Guardar config del LLM (cifrada)**.
 - Listo: ya puedes hablar/escribir con Yino.
 
+#### Ejemplo concreto: Groq (gratis, sin PC)
+- **API Key:** la que generas en groq.com (empieza por `gsk_`).
+- **URL base del LLM:** `https://api.groq.com/openai/v1/chat/completions`
+- **Modelo:** `llama-3.3-70b-versatile` (o `llama-3.1-8b-instant` para menor latencia).
+Groq es OpenAI-compatible, así que funciona tal cual. Solo necesitas internet.
+
 ### Opción B — LLM local (privado, sin nube)
 - En tu PC levanta un servidor local, p. ej. Ollama o llama.cpp, en
   `http://127.0.0.1:8080` (compatible con el endpoint `/completion`).
