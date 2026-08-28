@@ -36,9 +36,7 @@ fun VoiceScreen(viewModel: YinoViewModel) {
     val activity = context as? FragmentActivity
     val scope = rememberCoroutineScope()
     val tts = remember { AndroidTtsProvider(context.applicationContext) }
-    val modelPath = remember {
-        "${context.getExternalFilesDir(null)?.absolutePath}/vosk-model-small-es-0.42"
-    }
+    val modelPath = remember { YinoGraph.secure.voskModelPath }
     val vosk = remember { VoskSttProvider(context) }
     var modelReady by remember { mutableStateOf(false) }
     var listening by remember { mutableStateOf(false) }

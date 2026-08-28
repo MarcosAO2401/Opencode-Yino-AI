@@ -46,9 +46,16 @@ Nota: la app es OpenAI-compatible, así que también sirve llama.cpp en modo
 servidor OpenAI (`http://127.0.0.1:8080/v1/chat/completions`).
 
 ## 3. Modelo de voz (solo para el modo Voz / manos libres)
-- Descarga `vosk-model-small-es-0.42` (de la web de Vosk).
-- Colócalo en el teléfono en:
-  `Android/data/com.yino.ai/files/vosk-model-small-es-0.42`
+Descarga **`vosk-model-small-es-0.42`** (~40 MB, NO el de 1.4 GB) desde
+https://alphacephei.com/vosk/models y descomprímelo en el teléfono.
+
+Forma más fácil (la app lo copia sola):
+- En Yino → **Ajustes** → **Seleccionar carpeta del modelo Vosk**.
+- Eliges la carpeta `vosk-model-small-es-0.42` que descomprimiste.
+- La app la copia a su propio almacenamiento. Listo, no muevas archivos a mano.
+
+Forma manual (alternativa): mueve la carpeta a
+`Android/data/com.yino.ai/files/vosk-model-small-es-0.42`.
 - Si no pones el modelo, la pantalla **Voz** avisará "Modelo no encontrado"
   (el resto de la app sí funciona).
 

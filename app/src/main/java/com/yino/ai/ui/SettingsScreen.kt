@@ -21,8 +21,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import android.content.Intent
+import android.content.Context
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.documentfile.provider.DocumentFile
+import androidx.compose.runtime.rememberCoroutineScope
 import com.yino.ai.core.YinoGraph
 import com.yino.ai.voice.YinoVoiceService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
 
 @Composable
 fun SettingsScreen(viewModel: YinoViewModel) {
@@ -36,6 +44,23 @@ fun SettingsScreen(viewModel: YinoViewModel) {
     var wakeWord by remember { mutableStateOf(YinoGraph.secure.wakeWordEnabled) }
     var listening by remember { mutableStateOf(false) }
     var saved by remember { mutableStateOf(false) }
+    var voskStatus by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    val voskPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocumentTree(),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        context.contentResolver.takePersistableUriPermission(
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION,
+        )
+        scope.launch(Dispatchers.IO) {
+            val dest = File(context.getExternalFilesDir(null), "vosk-model-small-es-0.42")
+            copyUriTree(context, uri, dest)
+            YinoGraph.secure.voskModelPath = dest.absolutePath
+            voskStatus = "Modelo de voz copiado a ${dest.absolutePath}"
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -123,6 +148,18 @@ fun SettingsScreen(viewModel: YinoViewModel) {
             })
         }
 
+        Button(onClick = { voskPicker.launch(null) }) {
+            Text("Seleccionar carpeta del modelo Vosk")
+        }
+        Text(
+            "Elige la carpeta 'vosk-model-small-es-0.42' (p. ej. donde la descomprimiste). " +
+                "La app la copia sola a su almacenamiento. No necesitas mover archivos manualmente.",
+            style = MaterialTheme.typography.bodySmall,
+        )
+        if (voskStatus.isNotBlank()) {
+            Text(voskStatus, style = MaterialTheme.typography.bodySmall)
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -144,6 +181,27 @@ fun SettingsScreen(viewModel: YinoViewModel) {
 
         if (saved) {
             Text("Guardado ✓ (cifrado en disco vía AndroidKeyStore)", style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+private fun copyUriTree(context: Context, treeUri: android.net.Uri, dest: File) {
+    dest.mkdirs()
+    val tree = DocumentFile.fromTreeUri(context, treeUri) ?: return
+    copyDoc(context, tree, dest)
+}
+
+private fun copyDoc(context: Context, doc: DocumentFile, dest: File) {
+    if (doc.isDirectory) {
+        dest.mkdirs()
+        doc.listFiles().forEach { child ->
+            val name = child.name ?: return@forEach
+            copyDoc(context, child, File(dest, name))
+        }
+    } else {
+        val name = doc.name ?: return
+        context.contentResolver.openInputStream(doc.uri)?.use { input ->
+            File(dest, name).outputStream().use { out -> input.copyTo(out) }
         }
     }
 }
