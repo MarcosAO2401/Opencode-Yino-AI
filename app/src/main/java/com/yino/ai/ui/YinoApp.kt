@@ -2,6 +2,7 @@ package com.yino.ai.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Memory
@@ -19,6 +20,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.tween
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -27,6 +33,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.yino.ai.ui.theme.AnimatedYinoBackground
 
 sealed class YinoDestination(
     val route: String,
@@ -72,13 +79,21 @@ fun YinoApp() {
             }
         },
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = YinoDestination.Chat.route,
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
+            AnimatedYinoBackground(Modifier.fillMaxSize())
+            NavHost(
+                navController = navController,
+                startDestination = YinoDestination.Chat.route,
+                modifier = Modifier.fillMaxSize(),
+                enterTransition = { slideInHorizontally(tween(300)) { it } + fadeIn(tween(300)) },
+                exitTransition = { slideOutHorizontally(tween(300)) { -it } + fadeOut(tween(300)) },
+                popEnterTransition = { slideInHorizontally(tween(300)) { -it } + fadeIn(tween(300)) },
+                popExitTransition = { slideOutHorizontally(tween(300)) { it } + fadeOut(tween(300)) },
+            ) {
             composable(YinoDestination.Chat.route) { ChatScreen(viewModel) }
             composable(YinoDestination.Voice.route) { VoiceScreen(viewModel) }
             composable(YinoDestination.Automation.route) { AutomationScreen(viewModel) }
@@ -86,6 +101,7 @@ fun YinoApp() {
             composable(YinoDestination.Memory.route) { MemoryScreen(viewModel) }
             composable(YinoDestination.Settings.route) { SettingsScreen(viewModel) }
             composable(YinoDestination.Identity.route) { IdentityScreen(viewModel) }
+        }
         }
     }
 }
