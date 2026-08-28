@@ -37,11 +37,11 @@ class SecureSettings(context: Context) {
         set(value) = prefs.edit().putString(KEY_MODEL_NAME, value).apply()
 
     var useLocalLlm: Boolean
-        get() = prefs.getBoolean(KEY_LOCAL, false)
+        get() = prefs.getBoolean(KEY_LOCAL, true)
         set(value) = prefs.edit().putBoolean(KEY_LOCAL, value).apply()
 
     var localModelPath: String
-        get() = prefs.getString(KEY_MODEL, "") ?: ""
+        get() = prefs.getString(KEY_MODEL, DEFAULT_LOCAL_URL) ?: DEFAULT_LOCAL_URL
         set(value) = prefs.edit().putString(KEY_MODEL, value).apply()
 
     var localModelName: String
@@ -69,5 +69,6 @@ class SecureSettings(context: Context) {
         const val DEFAULT_URL = "https://api.openai.com/v1/chat/completions"
         const val DEFAULT_MODEL = "gpt-4o-mini"
         const val DEFAULT_LOCAL_MODEL = "llama3"
+        const val DEFAULT_LOCAL_URL = "http://127.0.0.1:11434/v1/chat/completions"
     }
 }
