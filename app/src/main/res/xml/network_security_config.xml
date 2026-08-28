@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- El LLM local corre en el propio dispositivo (servidor llama.cpp en
+         127.0.0.1). Solo se permite texto claro a localhost; todo lo demás
+         (API cloud) usa HTTPS obligatoriamente. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>
