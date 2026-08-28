@@ -68,7 +68,11 @@ object YinoGraph {
         llm = if (secure.useLocalLlm) {
             LocalLLMProvider(secure.localModelPath.ifBlank { "http://127.0.0.1:8080" })
         } else {
-            CloudLLMProvider(apiKeyParam = secure.apiKey)
+            CloudLLMProvider(
+                baseUrl = secure.llmBaseUrl.ifBlank { SecureSettings.DEFAULT_URL },
+                apiKeyParam = secure.apiKey,
+                model = secure.llmModel.ifBlank { SecureSettings.DEFAULT_MODEL },
+            )
         }
         agent = AgentLoop(
             llm,
@@ -81,6 +85,16 @@ object YinoGraph {
 
     fun setApiKey(key: String) {
         secure.apiKey = key
+        if (!secure.useLocalLlm) rebuildLlm()
+    }
+
+    fun setLlmBaseUrl(url: String) {
+        secure.llmBaseUrl = url
+        if (!secure.useLocalLlm) rebuildLlm()
+    }
+
+    fun setLlmModel(model: String) {
+        secure.llmModel = model
         if (!secure.useLocalLlm) rebuildLlm()
     }
 

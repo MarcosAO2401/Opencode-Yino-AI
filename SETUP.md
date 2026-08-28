@@ -14,9 +14,12 @@ Yino necesita un modelo de lenguaje. Tienes dos opciones:
 
 ### Opción A — API en la nube (la más simple)
 - Abre Yino → pestaña **Ajustes**.
-- Pega tu API key compatible con OpenAI en el campo **API key**
-  (funciona con OpenAI, y también con Gemini/DeepSeek/Groq/Together cambiando
-  la URL base en código; por defecto usa `api.openai.com/v1/chat/completions`).
+- Rellena **API Key**, **URL base del LLM** y **Modelo**:
+  - Por defecto: OpenAI (`https://api.openai.com/v1/chat/completions`, `gpt-4o-mini`).
+  - Proveedores **gratuitos OpenAI-compatible** (sin cambiar código): pon su URL y
+    modelo, p. ej. DeepSeek (`https://api.deepseek.com/v1/chat/completions`,
+    `deepseek-chat`), Groq, Together, OpenRouter, etc.
+- Pulsa **Guardar config del LLM (cifrada)**.
 - Listo: ya puedes hablar/escribir con Yino.
 
 ### Opción B — LLM local (privado, sin nube)

@@ -29,6 +29,8 @@ fun SettingsScreen(viewModel: YinoViewModel) {
     val context = LocalContext.current
     var localLlm by remember { mutableStateOf(YinoGraph.secure.useLocalLlm) }
     var apiKey by remember { mutableStateOf(YinoGraph.secure.apiKey) }
+    var baseUrl by remember { mutableStateOf(YinoGraph.secure.llmBaseUrl) }
+    var cloudModel by remember { mutableStateOf(YinoGraph.secure.llmModel) }
     var modelPath by remember { mutableStateOf(YinoGraph.secure.localModelPath) }
     var wakeWord by remember { mutableStateOf(YinoGraph.secure.wakeWordEnabled) }
     var listening by remember { mutableStateOf(false) }
@@ -60,10 +62,29 @@ fun SettingsScreen(viewModel: YinoViewModel) {
                 label = { Text("API Key (nube)") },
                 modifier = Modifier.fillMaxWidth(),
             )
+            OutlinedTextField(
+                value = baseUrl,
+                onValueChange = { baseUrl = it },
+                label = { Text("URL base del LLM (OpenAI-compatible)") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = cloudModel,
+                onValueChange = { cloudModel = it },
+                label = { Text("Modelo (p. ej. gpt-4o-mini)") },
+                modifier = Modifier.fillMaxWidth(),
+            )
             Button(onClick = {
                 YinoGraph.setApiKey(apiKey)
+                YinoGraph.setLlmBaseUrl(baseUrl)
+                YinoGraph.setLlmModel(cloudModel)
                 saved = true
-            }) { Text("Guardar API key (cifrada)") }
+            }) { Text("Guardar config del LLM (cifrada)") }
+            Text(
+                "Compatible con OpenAI y proveedores OpenAI-compatible " +
+                    "(DeepSeek, Groq, Together, OpenRouter, etc.). Cambia la URL y el modelo.",
+                style = MaterialTheme.typography.bodySmall,
+            )
         } else {
             OutlinedTextField(
                 value = modelPath,
