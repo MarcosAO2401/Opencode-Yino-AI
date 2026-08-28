@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
  */
 class YinoVoiceService : Service() {
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var vosk: VoskSttProvider
     private lateinit var tts: AndroidTtsProvider
     private lateinit var audioManager: AudioManager
@@ -43,10 +43,12 @@ class YinoVoiceService : Service() {
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         tts = AndroidTtsProvider(applicationContext)
         vosk = VoskSttProvider(this)
-        vosk.loadModel(YinoGraph.secure.voskModelPath)
         requestAudioFocus()
         startForeground(NOTIF_ID, buildNotification())
-        if (YinoGraph.secure.wakeWordEnabled) startWake()
+        scope.launch {
+            vosk.loadModel(YinoGraph.secure.voskModelPath)
+            if (YinoGraph.secure.wakeWordEnabled) startWake()
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY

@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 
 data class ChatMessageUi(val role: String, val text: String)
 
@@ -41,7 +42,7 @@ class YinoViewModel : ViewModel() {
         if (trimmed.isEmpty() || _busy.value) return
         _messages.value = _messages.value + ChatMessageUi("user", trimmed)
         _busy.value = true
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result = runAgent(trimmed)
                 _messages.value = _messages.value + ChatMessageUi("assistant", result)

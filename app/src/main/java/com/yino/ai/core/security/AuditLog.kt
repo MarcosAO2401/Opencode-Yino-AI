@@ -1,10 +1,12 @@
 package com.yino.ai.core.security
 
+import java.io.File
 import java.time.Instant
 
 /**
  * Registro inmutable de todas las acciones ejecutadas por el agente.
- * Persistencia en memoria; en producción se vuelca a Room (ver data/).
+ * Persistencia en archivo (append-only) + espejo en memoria, para poder
+ * auditar lo ocurrido incluso si la app se reinicia.
  */
 object AuditLog {
 
@@ -17,10 +19,21 @@ object AuditLog {
     )
 
     private val entries = mutableListOf<Entry>()
+    private lateinit var file: File
+
+    fun init(context: android.content.Context) {
+        file = File(context.filesDir, "yino_audit.log")
+    }
 
     @Synchronized
     fun record(toolId: String, risk: String, approved: Boolean, result: String) {
-        entries += Entry(Instant.now(), toolId, risk, approved, result)
+        val entry = Entry(Instant.now(), toolId, risk, approved, result)
+        entries += entry
+        if (::file.isInitialized) {
+            runCatching {
+                file.appendText("${entry.ts}\t$toolId\t$risk\t$approved\t${result.replace("\n", " ")}\n")
+            }
+        }
     }
 
     @Synchronized

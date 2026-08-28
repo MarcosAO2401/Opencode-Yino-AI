@@ -29,8 +29,11 @@ class SecurityGate {
     fun requiresConfirmation(risk: ActionRisk): Boolean = risk != ActionRisk.LOW
 
     /**
-     * Solicita autorización. Por defecto (sin handler UI) rechaza riesgo ALTO
-     * y aprueba MEDIO transparente; con UI conectada, espera respuesta real.
+     * Solicita autorizacion. FAIL-CLOSED: si no hay respuesta explicita del
+     * usuario (UI o confirmacion por voz), se deniega. Esto evita que el
+     * asistente en segundo plano (servicio de voz sin UI) ejecute acciones de
+     * riesgo MEDIO/ALTO solo por el wake-word. El Chat tiene un dialogo que
+     * llama a respond(id, true) y aprueba explicitamente.
      */
     suspend fun authorize(toolId: String, risk: ActionRisk, reason: String): Boolean {
         if (risk == ActionRisk.LOW) return true
@@ -38,9 +41,7 @@ class SecurityGate {
         _pending.tryEmit(PendingApproval(id, toolId, risk, reason))
         return try {
             withTimeout(120.seconds) {
-                // Espera a que la UI llame a respond() con este id.
-                // Si no hay UI conectada, denegar por seguridad.
-                responses[id] ?: (risk != ActionRisk.HIGH).also { responses.remove(id) }
+                responses[id] ?: false
             }
         } catch (e: Exception) {
             responses.remove(id)

@@ -10,6 +10,7 @@ import com.yino.ai.core.identity.IdentityGate
 import com.yino.ai.core.identity.SystemBiometricFaceAuth
 import com.yino.ai.core.identity.EmbeddingVoiceAuthProvider
 import com.yino.ai.core.security.SecurityGate
+import com.yino.ai.core.security.AuditLog
 import com.yino.ai.core.settings.SecureSettings
 import com.yino.ai.core.tools.ToolRegistry
 import com.yino.ai.core.tools.impl.BackTool
@@ -45,6 +46,7 @@ object YinoGraph {
         if (::appContext.isInitialized) return
         appContext = context.applicationContext
         secure = SecureSettings(appContext)
+        AuditLog.init(appContext)
         memory = MemoryRepository(appContext)
         registerTools()
         rebuildLlm()

@@ -22,10 +22,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
 import com.yino.ai.core.YinoGraph
 import com.yino.ai.voice.AndroidTtsProvider
 import com.yino.ai.voice.VoskSttProvider
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun VoiceScreen(viewModel: YinoViewModel) {
@@ -37,9 +40,13 @@ fun VoiceScreen(viewModel: YinoViewModel) {
         "${context.getExternalFilesDir(null)?.absolutePath}/vosk-model-small-es-0.42"
     }
     val vosk = remember { VoskSttProvider(context) }
-    var modelReady by remember { mutableStateOf(vosk.loadModel(modelPath)) }
+    var modelReady by remember { mutableStateOf(false) }
     var listening by remember { mutableStateOf(false) }
-    var status by remember { mutableStateOf(if (modelReady) "Pulsa para hablar" else "Modelo de voz no encontrado") }
+    var status by remember { mutableStateOf("Cargando modelo de voz...") }
+    LaunchedEffect(Unit) {
+        modelReady = withContext(Dispatchers.IO) { vosk.loadModel(modelPath) }
+        status = if (modelReady) "Pulsa para hablar" else "Modelo de voz no encontrado"
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
