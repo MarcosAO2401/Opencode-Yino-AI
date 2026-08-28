@@ -55,10 +55,21 @@ fun SettingsScreen(viewModel: YinoViewModel) {
             Intent.FLAG_GRANT_READ_URI_PERMISSION,
         )
         scope.launch(Dispatchers.IO) {
-            val dest = File(context.getExternalFilesDir(null), "vosk-model-small-es-0.42")
-            copyUriTree(context, uri, dest)
-            YinoGraph.secure.voskModelPath = dest.absolutePath
-            voskStatus = "Modelo de voz copiado a ${dest.absolutePath}"
+            try {
+                val dest = File(context.getExternalFilesDir(null), "vosk-model-small-es-0.42")
+                copyUriTree(context, uri, dest)
+                val ok = File(dest, "am").isDirectory || File(dest, "conf").isDirectory
+                if (!ok) {
+                    voskStatus = "La carpeta elegida no parece un modelo Vosk " +
+                        "(debe contener 'am' y 'conf'). Elige la carpeta vosk-model-small-es-0.42."
+                } else {
+                    YinoGraph.secure.voskModelPath = dest.absolutePath
+                    voskStatus = "Modelo de voz copiado a ${dest.absolutePath}"
+                }
+            } catch (e: Exception) {
+                voskStatus = "Error al copiar el modelo: ${e.message}. " +
+                    "Intenta mover la carpeta manualmente a Android/data/com.yino.ai/files/."
+            }
         }
     }
 

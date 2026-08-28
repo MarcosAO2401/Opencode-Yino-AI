@@ -46,7 +46,8 @@ class YinoVoiceService : Service() {
         requestAudioFocus()
         startForeground(NOTIF_ID, buildNotification())
         scope.launch {
-            vosk.loadModel(YinoGraph.secure.voskModelPath)
+            runCatching { vosk.loadModel(YinoGraph.secure.voskModelPath) }
+                .onFailure { /* modelo no disponible: el servicio sigue vivo pero sin voz */ }
             if (YinoGraph.secure.wakeWordEnabled) startWake()
         }
     }

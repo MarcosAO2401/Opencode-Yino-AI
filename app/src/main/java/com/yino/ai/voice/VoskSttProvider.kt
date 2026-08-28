@@ -23,7 +23,7 @@ class VoskSttProvider(private val context: Context) : STTProvider {
     fun loadModel(modelPath: String): Boolean = try {
         model = Model(modelPath)
         true
-    } catch (e: Exception) {
+    } catch (t: Throwable) {
         false
     }
 
