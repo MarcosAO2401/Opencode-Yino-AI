@@ -274,7 +274,9 @@ private fun copyDoc(context: Context, doc: DocumentFile, dest: File) {
     } else {
         val name = doc.name ?: return
         context.contentResolver.openInputStream(doc.uri)?.use { input ->
-            File(dest, name).outputStream().use { out -> input.copyTo(out) }
+            File(dest, name).outputStream().use { out ->
+                input.copyTo(out, 8192)
+            }
         }
     }
 }
