@@ -10,11 +10,8 @@ import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.delay
 import kotlin.math.pow
 
@@ -24,10 +21,9 @@ import kotlin.math.pow
  * Implementación real y compilable; la API key se gestiona en Settings.
  * 
  * Características:
- * - Streaming nativo (SSE) para respuestas incrementales
  * - Retry exponencial con backoff para errores transitorios
  * - Timeout configurable
- * - Compatible OpenAI API (tools, streaming, system prompts)
+ * - Compatible OpenAI API (tools, system prompts)
  */
 class CloudLLMProvider(
     private val baseUrl: String = "https://api.openai.com/v1/chat/completions",
@@ -76,7 +72,7 @@ class CloudLLMProvider(
     )
     @Serializable private data class ToolCallFun(val name: String, val arguments: String)
 
-    // Streaming response types
+    // Streaming response types (for future use)
     @Serializable private data class StreamResp(val choices: List<StreamChoice>)
     @Serializable private data class StreamChoice(
         val delta: StreamDelta,
@@ -89,6 +85,10 @@ class CloudLLMProvider(
     @Serializable private data class StreamToolCall(
         val index: Int? = null,
         val function: StreamToolCallFun? = null,
+    )
+    @Serializable private data class StreamToolCallFun(
+        val name: String? = null,
+        val arguments: String? = null,
     )
 
     override suspend fun complete(request: LLMRequest): LLMResult {
@@ -127,59 +127,4 @@ class CloudLLMProvider(
             }
         }
     }
-
-    override fun stream(request: LLMRequest): Flow<LLMResult> = callbackFlow {
-        val tools = if (request.tools.isEmpty()) null else request.tools.map {
-            Tool(function = Fun(it.name, it.description, it.parametersJsonSchema))
-        }
-        val body = Req(
-            model = model,
-            messages = request.messages.map { Msg(it.role.name.lowercase(), it.content) },
-            temperature = request.temperature,
-            stream = true,
-            tools = tools,
-        )
-
-        client.executeRequest {
-            method = io.ktor.http.HttpMethod.Post
-            url = io.ktor.http.URL(baseUrl)
-            contentType(ContentType.Application.Json)
-            header("Authorization", "Bearer $apiKey")
-            header("Accept", "text/event-stream")
-            setBody(body)
-        }.body().collect { response ->
-            val text = response.readText()
-            text.split("\n").forEach { line ->
-                if (line.startsWith("data: ") && !line.contains("[DONE]")) {
-                    val jsonStr = line.substring(6)
-                    try {
-                        val streamResp = json.decodeFromString<StreamResp>(jsonStr)
-                        streamResp.choices.forEach { choice ->
-                            choice.delta.content?.let { content ->
-                                trySend(LLMResult.Text(content))
-                            }
-                            choice.delta.tool_calls?.forEach { tc ->
-                                val toolFun = tc.function
-                                if (toolFun != null && (toolFun.name != null || toolFun.arguments != null)) {
-                                    trySend(LLMResult.ToolCall(
-                                        toolFun.name ?: "",
-                                        toolFun.arguments ?: ""
-                                    ))
-                                }
-                                val reason = choice.finish_reason
-                                if (reason != null) {
-                                    if (reason == "stop" || reason == "tool_calls") {
-                                        close()
-                                    }
-                                }
-                            }
-                        } catch (e: Exception) {
-                            // Ignore parse errors for partial chunks
-                        }
-                    }
-                }
-            }
-        }.awaitClose { close() }
-    }
-
-    }
+}

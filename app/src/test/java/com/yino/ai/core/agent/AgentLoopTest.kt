@@ -74,7 +74,7 @@ class AgentLoopTest {
 
         val result = agent.run("Echo test")
         assertEquals("Done", result)
-        assertEquals(2, 2) // 2 LLM calls expected
+        assertEquals(2, callCount)
     }
 
     @Test
@@ -120,13 +120,14 @@ class AgentLoopTest {
     }
 
     @Test
-    fun `stops at maxSteps`() = runBlockingTest {
+    fun `stops at maxSteps and summarizes`() = runBlockingTest {
         var callCount = 0
         val llm = object : LLMProvider {
             override val id = "test"
             override val supportsTools = true
             override suspend fun complete(request: LLMRequest): LLMResult {
                 callCount++
+                // Always return tool call to force maxSteps
                 return LLMResult.ToolCall("step_tool", "{}")
             }
         }
@@ -145,8 +146,10 @@ class AgentLoopTest {
         val agent = AgentLoop(llm, registry, gate, { false }, { emptySet() }, maxSteps = 2)
 
         val result = agent.run("Test")
-        assertEquals(2, callCount)
-        assertTrue("Should indicate max steps reached", result.contains("completado") || result.contains("continu"))
+        // Should make 2 tool calls + 1 final summary call = 3 total
+        assertEquals(3, callCount)
+        // Result should be the summary from the final LLM call
+        assertTrue("Should indicate max steps reached with summary", result.contains("completado") || result.contains("continu") || result.contains("step done"))
     }
 
     @Test

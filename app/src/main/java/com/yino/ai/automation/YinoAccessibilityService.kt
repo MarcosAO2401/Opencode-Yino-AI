@@ -15,7 +15,7 @@ import android.view.accessibility.AccessibilityNodeInfo.ACTION_SET_TEXT
  */
 class YinoAccessibilityService : AccessibilityService() {
 
-    private lateinit var executor: ActionExecutor
+    private var executor: ActionExecutor? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -32,16 +32,19 @@ class YinoAccessibilityService : AccessibilityService() {
 
     override fun onDestroy() {
         InstanceHolder.instance = null
+        executor = null
         super.onDestroy()
     }
 
-    fun tap(x: Float, y: Float) = executor.submit(UiAction.Tap(x, y))
+    private fun ensureExecutor(): Boolean = executor != null
+
+    fun tap(x: Float, y: Float) = executor?.submit(UiAction.Tap(x, y))
     fun swipe(x1: Float, y1: Float, x2: Float, y2: Float) =
-        executor.submit(UiAction.Swipe(x1, y1, x2, y2))
-    fun global(action: Int) = executor.submit(UiAction.Global(action))
-    fun click(node: AccessibilityNodeInfo) = executor.submit(UiAction.ClickNode(node))
+        executor?.submit(UiAction.Swipe(x1, y1, x2, y2))
+    fun global(action: Int) = executor?.submit(UiAction.Global(action))
+    fun click(node: AccessibilityNodeInfo) = executor?.submit(UiAction.ClickNode(node))
     fun type(node: AccessibilityNodeInfo, text: String) =
-        executor.submit(UiAction.TypeText(node, text))
+        executor?.submit(UiAction.TypeText(node, text))
 
     fun root(): AccessibilityNodeInfo? = rootInActiveWindow
 
@@ -51,6 +54,7 @@ class YinoAccessibilityService : AccessibilityService() {
      * encontró y disparó el clic. Se usa para manejar cualquier app por nombre.
      */
     fun findAndClick(text: String): Boolean {
+        if (!ensureExecutor()) return false
         var clicked = false
         withRoot { root ->
             if (root == null) return@withRoot
@@ -79,6 +83,7 @@ class YinoAccessibilityService : AccessibilityService() {
      * mensaje, etc.). Devuelve true si encontró un campo y envió el texto.
      */
     fun findEditableAndType(text: String): Boolean {
+        if (!ensureExecutor()) return false
         var ok = false
         withRoot { root ->
             if (root == null) return@withRoot

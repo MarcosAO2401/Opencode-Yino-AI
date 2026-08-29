@@ -1,6 +1,10 @@
 package com.yino.ai.core.security
 
 import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -39,16 +43,22 @@ class SecurityGateTest {
     @Test
     fun `approval resolves pending deferred`() = runBlockingTest {
         val gate = SecurityGate().apply { interactive = true }
-        val approve = gate.authorize("test_tool", ActionRisk.MEDIUM, "test reason")
-        assertFalse("Should be pending", approve)
+        
+        // Start authorization in background
+        val authJob = launch {
+            gate.authorize("test_tool", ActionRisk.MEDIUM, "test reason")
+        }
 
-        // Get the pending approval
+        // Give time for the pending approval to be emitted
+        delay(10)
+
+        // Collect the pending approval
         val pendingList = mutableListOf<SecurityGate.PendingApproval>()
-        val job = kotlinx.coroutines.launch {
+        val collectJob = launch {
             gate.pendingApprovals.collect { pendingList.add(it) }
         }
-        kotlinx.coroutines.delay(10) // allow collection
-        job.cancel()
+        delay(10)
+        collectJob.cancel()
 
         assertEquals(1, pendingList.size)
         val pending = pendingList[0]
@@ -56,34 +66,76 @@ class SecurityGateTest {
         // Approve it
         gate.respond(pending.requestId, true)
 
-        // The original authorize should complete with true
-        // Note: In real usage, the authorize suspends until respond is called
-        // This test verifies the mechanism works
+        // The authorize call should complete with true
+        val result = authJob.join()
+        assertTrue("Authorization should succeed after approval", result)
     }
 
     @Test
     fun `deny resolves pending deferred with false`() = runBlockingTest {
         val gate = SecurityGate().apply { interactive = true }
-        gate.authorize("test_tool", ActionRisk.HIGH, "test reason")
+        
+        val authJob = launch {
+            gate.authorize("test_tool", ActionRisk.HIGH, "test reason")
+        }
+
+        delay(10)
 
         val pendingList = mutableListOf<SecurityGate.PendingApproval>()
-        val job = kotlinx.coroutines.launch {
-            gate.pendingApprovals.collect { it }.let { pendingList.add(it) }
+        val collectJob = launch {
+            gate.pendingApprovals.collect { pendingList.add(it) }
         }
-        kotlinx.coroutines.delay(10)
-        job.cancel()
+        delay(10)
+        collectJob.cancel()
 
         val pending = pendingList[0]
         gate.respond(pending.requestId, false)
 
-        // Verify deny works
-        assertEquals(false, false) // placeholder for actual verification
+        val result = authJob.join()
+        assertFalse("Authorization should fail after denial", result)
     }
 
     @Test
     fun `timeout denies after 120 seconds`() = runBlockingTest {
+        // Use a short timeout for testing by creating a gate with a shorter timeout
+        // We test the timeout mechanism by using a custom dispatcher that we can control
+        val testDispatcher = UnconfinedTestDispatcher()
         val gate = SecurityGate().apply { interactive = true }
-        // We can't easily test 120s timeout in unit test, but we verify the mechanism exists
-        assertTrue(true)
+        
+        val authJob = launch(testDispatcher) {
+            gate.authorize("test_tool", ActionRisk.MEDIUM, "test reason")
+        }
+
+        // Advance time past the timeout (120 seconds)
+        testDispatcher.advanceTimeBy(121_000)
+
+        val result = authJob.join()
+        assertFalse("Authorization should timeout and deny after 120 seconds", result)
+    }
+
+    @Test
+    fun `multiple pending approvals handled correctly`() = runBlockingTest {
+        val gate = SecurityGate().apply { interactive = true }
+        
+        val authJob1 = launch { gate.authorize("tool1", ActionRisk.MEDIUM, "reason1") }
+        val authJob2 = launch { gate.authorize("tool2", ActionRisk.HIGH, "reason2") }
+
+        delay(10)
+
+        val pendingList = mutableListOf<SecurityGate.PendingApproval>()
+        val collectJob = launch {
+            gate.pendingApprovals.collect { pendingList.add(it) }
+        }
+        delay(10)
+        collectJob.cancel()
+
+        assertEquals(2, pendingList.size)
+
+        // Approve first, deny second
+        gate.respond(pendingList[0].requestId, true)
+        gate.respond(pendingList[1].requestId, false)
+
+        assertTrue(authJob1.join())
+        assertFalse(authJob2.join())
     }
 }

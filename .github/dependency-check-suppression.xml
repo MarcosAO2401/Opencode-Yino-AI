@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions>
+  <!-- Example suppression - replace with actual CVEs if needed -->
+  <suppress>
+    <notes>No known suppressions yet - update after first run</notes>
+    <packageUrl>pkg:maven/androidx.core/core-ktx@1.13.1</packageUrl>
+    <cve>CVE-2023-XXXX</cve>
+  </suppress>
+</suppressions>

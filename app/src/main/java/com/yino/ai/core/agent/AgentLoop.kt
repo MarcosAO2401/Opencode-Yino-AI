@@ -58,13 +58,22 @@ class AgentLoop(
                     val res = registry.execute(tool.id, result.argumentsJson, ctx)
                     AuditLog.record(tool.id, tool.risk.name, true, res.message)
                     history += ChatMessage(Role.TOOL, "[${tool.id}] ${res.message}")
-                    if (res.success && step == maxSteps - 1) {
-                        // Deja que el modelo resuma tras la última acción.
+                    if (step == maxSteps - 1) {
+                        // Último paso: deja que el modelo resuma el resultado
+                        val finalRequest = LLMRequest(
+                            messages = history + ChatMessage(Role.SYSTEM, "Resume brevemente lo que hiciste y el resultado."),
+                            tools = emptyList(),
+                        )
+                        val finalResult = llm.complete(finalRequest)
+                        return when (finalResult) {
+                            is LLMResult.Text -> finalResult.content
+                            else -> "He completado la acción. ${res.message}"
+                        }
                     }
                 }
             }
         }
-        return "He completado el paso disponible. ¿Quieres que continúe?"
+        return "He completado los pasos disponibles. ¿Quieres que continúe?"
     }
 
     companion object {

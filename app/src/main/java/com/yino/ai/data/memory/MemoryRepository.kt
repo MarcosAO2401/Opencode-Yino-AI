@@ -1,9 +1,13 @@
 package com.yino.ai.data.memory
 
 import android.content.Context
+import androidx.room.RoomDatabase
 
-class MemoryRepository(context: Context) {
-    private val store: MemoryStore = MemoryStore(MemoryDatabase.getInstance(context).dao())
+class MemoryRepository private constructor(private val store: MemoryStore) {
+
+    constructor(context: Context) : this(MemoryStore(MemoryDatabase.getInstance(context).dao()))
+
+    constructor(dao: MemoryDao) : this(MemoryStore(dao))
 
     suspend fun append(role: String, content: String): Long = store.append(role, content)
 
