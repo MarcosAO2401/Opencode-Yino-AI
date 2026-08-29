@@ -1,5 +1,6 @@
 package com.yino.ai.data.memory
 
+import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.yino.ai.data.memory.ConversationEntity
@@ -12,21 +13,18 @@ import org.junit.Test
 
 class MemoryRepositoryTest {
 
-    private lateinit var db: MemoryDatabase
+    private lateinit var context: Context
     private lateinit var repo: MemoryRepository
 
     @Before
     fun setup() {
-        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-        db = Room.inMemoryDatabaseBuilder(context, MemoryDatabase::class.java)
-            .allowMainThreadQueries()
-            .build()
-        repo = MemoryRepository(db)
+        context = ApplicationProvider.getApplicationContext<Context>()
+        repo = MemoryRepository(context)
     }
 
     @After
     fun tearDown() {
-        db.close()
+        // No database to close when using context-based constructor
     }
 
     @Test
