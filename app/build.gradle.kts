@@ -45,21 +45,6 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-    
-    // Disable KAPT for test sources to avoid annotation processing issues with Mockito
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        kotlinOptions {
-            freeCompilerArgs += "-Xskip-kapt-test"
-        }
-    }
-    
-    // Disable KAPT test tasks
-    tasks.named("kaptDebugUnitTestKotlin") {
-        enabled = false
-    }
-    tasks.named("kaptGenerateStubsDebugUnitTestKotlin") {
-        enabled = false
-    }
 }
 
 dependencies {
@@ -95,8 +80,6 @@ dependencies {
     implementation("com.networknt:json-schema-validator:1.5.4")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.1")
     
-    // Test dependencies
-    testImplementation("org.mockito:mockito-core:5.11.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+    // Test dependencies - only coroutines test, no Mockito
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
 }

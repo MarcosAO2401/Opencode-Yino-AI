@@ -117,8 +117,8 @@ jobs:
         with:
           name: lint-results
           path: |
+            app/build/reports/lint-results-debug.html
             app/build/reports/lint-results*.html
-            app/build/reports/lint-results-*.html
 
   # dependency-check disabled due to Docker JAVA_HOME issues on GitHub Actions
   # Re-enable when fixed: https://github.com/dependency-check/Dependency-Check_Action/issues
