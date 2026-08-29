@@ -47,13 +47,13 @@ android {
     }
     
     // Disable KAPT for test sources to avoid annotation processing issues with Mockito
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
         kotlinOptions {
             freeCompilerArgs += "-Xskip-kapt-test"
         }
     }
     
-    // Alternative: Configure kapt to skip test sources
+    // Disable KAPT test tasks
     tasks.named("kaptDebugUnitTestKotlin") {
         enabled = false
     }
