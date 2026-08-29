@@ -10,6 +10,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -119,6 +120,7 @@ fun SettingsScreen(viewModel: YinoViewModel) {
                 value = apiKey,
                 onValueChange = { apiKey = it },
                 label = { Text("API Key (nube)") },
+                visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
