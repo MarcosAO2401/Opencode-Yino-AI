@@ -105,18 +105,17 @@ class CloudLLMProvider(
                     stream = false,
                     tools = tools,
                 )
-                return client.post(baseUrl) {
+                val response: Resp = client.post(baseUrl) {
                     contentType(ContentType.Application.Json)
                     header("Authorization", "Bearer $apiKey")
                     setBody(body)
-                }.body().let { resp: Resp ->
-                    val choice = resp.choices.firstOrNull() ?: return LLMResult.Text("(sin respuesta del LLM)")
-                    val tc = choice.message.tool_calls?.firstOrNull()
-                    if (tc != null) {
-                        LLMResult.ToolCall(tc.function.name, tc.function.arguments)
-                    } else {
-                        LLMResult.Text(choice.message.content ?: "")
-                    }
+                }.body()
+                val choice = response.choices.firstOrNull() ?: return LLMResult.Text("(sin respuesta del LLM)")
+                val tc = choice.message.tool_calls?.firstOrNull()
+                return if (tc != null) {
+                    LLMResult.ToolCall(tc.function.name, tc.function.arguments)
+                } else {
+                    LLMResult.Text(choice.message.content ?: "")
                 }
             } catch (e: Exception) {
                 attempt++
