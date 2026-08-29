@@ -166,7 +166,8 @@ class CloudLLMProvider(
                                         toolFun.arguments ?: ""
                                     ))
                                 }
-                                choice.finish_reason?.let { reason ->
+                                val reason = choice.finish_reason
+                                if (reason != null) {
                                     if (reason == "stop" || reason == "tool_calls") {
                                         close()
                                     }
