@@ -20,8 +20,19 @@ fun AppsScreen(viewModel: YinoViewModel) {
 
     val apps = listOf(
         AppItems.SuggestedApp("WhatsApp", "com.whatsapp"),
-        AppItems.SuggestedApp("Calendar", "com.google.android.calendar"),
+        AppItems.SuggestedApp("Instagram", "com.instagram.android"),
+        AppItems.SuggestedApp("YouTube", "com.google.android.youtube"),
+        AppItems.SuggestedApp("TikTok", "com.zhiliaoapp.musically"),
+        AppItems.SuggestedApp("Facebook", "com.facebook.katana"),
+        AppItems.SuggestedApp("Messenger", "com.facebook.orca"),
+        AppItems.SuggestedApp("Twitter / X", "com.twitter.android"),
+        AppItems.SuggestedApp("Telegram", "org.telegram.messenger"),
         AppItems.SuggestedApp("Gmail", "com.google.android.gm"),
+        AppItems.SuggestedApp("Calendar", "com.google.android.calendar"),
+        AppItems.SuggestedApp("Maps", "com.google.android.apps.maps"),
+        AppItems.SuggestedApp("Chrome", "com.android.chrome"),
+        AppItems.SuggestedApp("Spotify", "com.spotify.music"),
+        AppItems.SuggestedApp("Netflix", "com.netflix.mediaclient"),
     )
 
     Column(
