@@ -47,13 +47,14 @@ android {
     }
     
     // Disable KAPT for test sources - Room compiler not available for test source set
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        val name = this.name
-        if (name.contains("Test") || name.contains("test")) {
-            kotlinOptions {
-                freeCompilerArgs += "-Xskip-kapt"
-            }
+    kapt {
+        correctErrorTypes = true
+        javacOptions {
+            option("-Xlint:unchecked")
         }
+        // Disable KAPT for test sources
+        useBuildCache = true
+        // Only run KAPT on main source set
     }
 }
 
