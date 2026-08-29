@@ -10,7 +10,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 
-data class ChatMessageUi(val role: String, val text: String)
+data class ChatMessageUi(
+    val role: String,
+    val text: String,
+    val time: Long = System.currentTimeMillis(),
+    val isError: Boolean = false,
+    val detail: String? = null,
+)
 
 class YinoViewModel : ViewModel() {
     private val _messages = MutableStateFlow<List<ChatMessageUi>>(emptyList())
@@ -48,7 +54,12 @@ class YinoViewModel : ViewModel() {
                 _messages.value = _messages.value + ChatMessageUi("assistant", result)
             } catch (e: Exception) {
                 _messages.value = _messages.value +
-                    ChatMessageUi("assistant", "Error: ${e.message ?: e.javaClass.simpleName}")
+                    ChatMessageUi(
+                        "assistant",
+                        "No pudimos completar la solicitud. Reintenta o revisa la conexión con el motor.",
+                        isError = true,
+                        detail = e.message ?: e.javaClass.simpleName,
+                    )
             } finally {
                 _busy.value = false
             }

@@ -5,18 +5,18 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -25,40 +25,83 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yino.ai.R
 
-val YinoFont = FontFamily(Font(R.font.orbitron))
+// Branding font (solo para títulos/marca). El cuerpo usa Roboto (Default) para legibilidad.
+val YinoBrand = FontFamily(Font(R.font.orbitron))
+val YinoText = FontFamily.Default
+
+object YinoColors {
+    val backgroundPrimary = Color(0xFF05080D)
+    val backgroundSecondary = Color(0xFF08111C)
+    val surface = Color(0xFF0B1622)
+    val surfaceElevated = Color(0xFF101D2B)
+    val accentPrimary = Color(0xFF2196F3)
+    val accentSecondary = Color(0xFF38A9FF)
+    val border = Color(0xFF1B3A52)
+    val textPrimary = Color(0xFFEAF2F8)
+    val textSecondary = Color(0xFF9AA9B8)
+    val textTertiary = Color(0xFF667788)
+    val error = Color(0xFFE5484D)
+    val success = Color(0xFF3DDC84)
+    val warning = Color(0xFFFFB020)
+}
+
+object YinoSpacing {
+    val xs: Dp = 4.dp
+    val s: Dp = 8.dp
+    val m: Dp = 12.dp
+    val l: Dp = 16.dp
+    val xl: Dp = 24.dp
+    val xxl: Dp = 32.dp
+}
+
+object YinoRadius {
+    val small: Dp = 8.dp
+    val medium: Dp = 12.dp
+    val large: Dp = 16.dp
+    val xlarge: Dp = 24.dp
+}
+
+object YinoMotion {
+    const val fast = 120
+    const val normal = 250
+    const val slow = 500
+}
 
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFF00E5FF),
-    onPrimary = Color(0xFF00181C),
-    secondary = Color(0xFFB388FF),
-    tertiary = Color(0xFF00FFA3),
-    background = Color(0xFF05080D),
-    surface = Color(0xFF0F1620),
-    surfaceVariant = Color(0xFF16202E),
-    onBackground = Color(0xFFE6F1FF),
-    onSurface = Color(0xFFE6F1FF),
-    outline = Color(0xFF1E2A38),
+    primary = YinoColors.accentPrimary,
+    onPrimary = YinoColors.backgroundPrimary,
+    secondary = YinoColors.accentSecondary,
+    background = YinoColors.backgroundPrimary,
+    surface = YinoColors.surface,
+    surfaceVariant = YinoColors.surfaceElevated,
+    onBackground = YinoColors.textPrimary,
+    onSurface = YinoColors.textPrimary,
+    onSurfaceVariant = YinoColors.textSecondary,
+    outline = YinoColors.border,
+    error = YinoColors.error,
+    onError = YinoColors.backgroundPrimary,
 )
 
 private val YinoTypography = Typography(
-    displaySmall = TextStyle(fontFamily = YinoFont, fontWeight = FontWeight.Bold, fontSize = 30.sp),
-    headlineSmall = TextStyle(fontFamily = YinoFont, fontWeight = FontWeight.Bold, fontSize = 22.sp),
-    headlineMedium = TextStyle(fontFamily = YinoFont, fontWeight = FontWeight.Bold, fontSize = 26.sp),
-    titleLarge = TextStyle(fontFamily = YinoFont, fontWeight = FontWeight.Bold, fontSize = 20.sp),
-    titleMedium = TextStyle(fontFamily = YinoFont, fontWeight = FontWeight.Medium, fontSize = 16.sp),
-    labelLarge = TextStyle(fontFamily = YinoFont, fontWeight = FontWeight.Bold, fontSize = 14.sp),
-    bodyLarge = TextStyle(fontFamily = YinoFont, fontSize = 15.sp),
-    bodyMedium = TextStyle(fontFamily = YinoFont, fontSize = 14.sp),
+    displaySmall = TextStyle(fontFamily = YinoBrand, fontWeight = FontWeight.Bold, fontSize = 30.sp),
+    headlineSmall = TextStyle(fontFamily = YinoBrand, fontWeight = FontWeight.Bold, fontSize = 22.sp),
+    headlineMedium = TextStyle(fontFamily = YinoBrand, fontWeight = FontWeight.Bold, fontSize = 26.sp),
+    titleLarge = TextStyle(fontFamily = YinoBrand, fontWeight = FontWeight.Bold, fontSize = 20.sp),
+    titleMedium = TextStyle(fontFamily = YinoText, fontWeight = FontWeight.Medium, fontSize = 16.sp),
+    labelLarge = TextStyle(fontFamily = YinoText, fontWeight = FontWeight.Bold, fontSize = 14.sp),
+    bodyLarge = TextStyle(fontFamily = YinoText, fontSize = 16.sp),
+    bodyMedium = TextStyle(fontFamily = YinoText, fontSize = 14.sp),
 )
 
 val YinoShapes = Shapes(
-    small = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
-    medium = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-    large = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+    small = RoundedCornerShape(YinoRadius.small),
+    medium = RoundedCornerShape(YinoRadius.medium),
+    large = RoundedCornerShape(YinoRadius.large),
 )
 
 @Composable
@@ -73,23 +116,27 @@ fun YinoTheme(content: @Composable () -> Unit) {
 
 @Composable
 fun AnimatedYinoBackground(modifier: Modifier = Modifier) {
-    val t = rememberInfiniteTransition(label = "glow")
-    val a1 by t.animateFloat(0.10f, 0.24f, infiniteRepeatable(tween(4200), RepeatMode.Reverse))
-    val a2 by t.animateFloat(0.08f, 0.20f, infiniteRepeatable(tween(5600), RepeatMode.Reverse))
+    val t = rememberInfiniteTransition(label = "bgGlow")
+    val a1 by t.animateFloat(0.08f, 0.16f, infiniteRepeatable(tween(5000), RepeatMode.Reverse))
+    val a2 by t.animateFloat(0.06f, 0.12f, infiniteRepeatable(tween(6500), RepeatMode.Reverse))
     Box(
-        modifier.fillMaxSize().background(
-            Brush.verticalGradient(
-                listOf(Color(0xFF05080D), Color(0xFF0A1626), Color(0xFF120A22)),
-            ),
-        ),
+        modifier.fillMaxSize().background(YinoColors.backgroundPrimary),
     ) {
         Box(
-            Modifier.wrapContentSize(Alignment.TopEnd).size(280.dp).offset(60.dp, (-50).dp)
-                .background(Brush.radialGradient(listOf(Color(0xFF00E5FF).copy(alpha = a1), Color.Transparent))),
+            Modifier.wrapContentSize(Alignment.TopEnd).size(260.dp).offset(40.dp, (-40).dp)
+                .background(
+                    Brush.radialGradient(
+                        listOf(YinoColors.accentSecondary.copy(alpha = a1), Color.Transparent),
+                    ),
+                ),
         )
         Box(
-            Modifier.wrapContentSize(Alignment.BottomStart).size(320.dp).offset((-80).dp, 70.dp)
-                .background(Brush.radialGradient(listOf(Color(0xFFB388FF).copy(alpha = a2), Color.Transparent))),
+            Modifier.wrapContentSize(Alignment.BottomStart).size(300.dp).offset((-60).dp, 60.dp)
+                .background(
+                    Brush.radialGradient(
+                        listOf(YinoColors.accentPrimary.copy(alpha = a2), Color.Transparent),
+                    ),
+                ),
         )
     }
 }
