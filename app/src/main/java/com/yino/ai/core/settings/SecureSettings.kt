@@ -41,7 +41,7 @@ class SecureSettings(context: Context) {
         set(value) = prefs.edit().putBoolean(KEY_LOCAL, value).apply()
 
     var localModelPath: String
-        get() = prefs.getString(KEY_MODEL, DEFAULT_LOCAL_URL) ?: DEFAULT_LOCAL_URL
+        get() = prefs.getString(KEY_MODEL, DEFAULT_LOCAL_MODEL_PATH) ?: DEFAULT_LOCAL_MODEL_PATH
         set(value) = prefs.edit().putString(KEY_MODEL, value).apply()
 
     var localModelName: String
@@ -60,6 +60,14 @@ class SecureSettings(context: Context) {
         get() = prefs.getBoolean(KEY_WAKE, true)
         set(value) = prefs.edit().putBoolean(KEY_WAKE, value).apply()
 
+    var requireFace: Boolean
+        get() = prefs.getBoolean(KEY_REQUIRE_FACE, false)
+        set(value) = prefs.edit().putBoolean(KEY_REQUIRE_FACE, value).apply()
+
+    var requireVoice: Boolean
+        get() = prefs.getBoolean(KEY_REQUIRE_VOICE, false)
+        set(value) = prefs.edit().putBoolean(KEY_REQUIRE_VOICE, value).apply()
+
     companion object {
         private const val KEY_API = "llm_api_key"
         private const val KEY_URL = "llm_base_url"
@@ -69,11 +77,15 @@ class SecureSettings(context: Context) {
         private const val KEY_VOSK = "vosk_model_path"
         private const val KEY_LOCAL_LLM_URL = "local_llm_base_url"
         private const val KEY_WAKE = "wake_word_enabled"
+        private const val KEY_REQUIRE_FACE = "require_face"
+        private const val KEY_REQUIRE_VOICE = "require_voice"
         const val DEFAULT_VOSK =
             "/storage/emulated/0/Android/data/com.yino.ai/files/vosk-model-small-es-0.42"
         const val DEFAULT_URL = "https://api.openai.com/v1/chat/completions"
         const val DEFAULT_MODEL = "gpt-4o-mini"
         const val DEFAULT_LOCAL_MODEL = "llama3"
         const val DEFAULT_LOCAL_URL = "http://127.0.0.1:11434/v1/chat/completions"
+        const val DEFAULT_LOCAL_MODEL_PATH =
+            "/storage/emulated/0/Android/data/com.yino.ai/files/gguf-model.gguf"
     }
 }
