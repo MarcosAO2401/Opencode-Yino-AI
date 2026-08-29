@@ -182,47 +182,4 @@ class CloudLLMProvider(
         }.awaitClose { close() }
     }
 
-    @Serializable
-    private data class Req(
-        val model: String,
-        val messages: List<Msg>,
-        val temperature: Float,
-        val stream: Boolean,
-        val tools: List<Tool>? = null,
-    )
-
-    @Serializable private data class Msg(val role: String, val content: String)
-    @Serializable private data class Tool(val type: String = "function", val function: Fun)
-    @Serializable private data class Fun(val name: String, val description: String, val parameters: String)
-
-    @Serializable private data class Resp(val choices: List<Choice>)
-    @Serializable private data class Choice(val message: RespMsg, val finish_reason: String?)
-    @Serializable private data class RespMsg(
-        val content: String? = null,
-        val tool_calls: List<ToolCall>? = null,
-    )
-    @Serializable private data class ToolCall(
-        val index: Int? = null,
-        val function: ToolCallFun,
-    )
-    @Serializable private data class ToolCallFun(val name: String, val arguments: String)
-
-    // Streaming response types
-    @Serializable private data class StreamResp(val choices: List<StreamChoice>)
-    @Serializable private data class StreamChoice(
-        val delta: StreamDelta,
-        val finish_reason: String? = null,
-    )
-    @Serializable private data class StreamDelta(
-        val content: String? = null,
-        val tool_calls: List<StreamToolCall>? = null,
-    )
-    @Serializable private data class StreamToolCall(
-        val index: Int? = null,
-        val function: StreamToolCallFun? = null,
-    )
-    @Serializable private data class StreamToolCallFun(
-        val name: String? = null,
-        val arguments: String? = null,
-    )
-}
+    }
