@@ -37,10 +37,11 @@ class SendMessageTool(private val context: Context) : Tool {
 
     override suspend fun execute(arguments: JSONObject, ctx: ToolContext): ToolResult {
         val app = arguments.optString("app").ifBlank { "whatsapp" }
-        val contact = arguments.optString("contact")
+        var contact = arguments.optString("contact")
         val msg = arguments.optString("message")
         if (msg.isBlank()) return ToolResult(false, "message requerido")
         if (contact.isBlank()) return ToolResult(false, "contact requerido")
+        ContactsHelper.resolvePhoneNumber(context, contact)?.let { contact = it }
 
         return try {
             when (app.lowercase()) {

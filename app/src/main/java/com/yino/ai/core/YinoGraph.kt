@@ -23,7 +23,10 @@ import com.yino.ai.core.tools.impl.SendMessageTool
 import com.yino.ai.core.tools.impl.SetAlarmTool
 import com.yino.ai.core.tools.impl.SetTimerTool
 import com.yino.ai.core.tools.impl.AddCalendarEventTool
+import com.yino.ai.core.tools.impl.CallTool
 import com.yino.ai.core.tools.impl.OpenUrlTool
+import com.yino.ai.core.tools.impl.PlayMusicTool
+import com.yino.ai.core.tools.impl.SendEmailTool
 import com.yino.ai.core.tools.impl.SetVolumeTool
 import com.yino.ai.core.tools.impl.TakePhotoTool
 import com.yino.ai.core.tools.impl.TapTool
@@ -72,6 +75,9 @@ object YinoGraph {
         registry.register(OpenUrlTool(appContext))
         registry.register(SetVolumeTool(appContext))
         registry.register(TakePhotoTool(appContext))
+        registry.register(CallTool(appContext))
+        registry.register(SendEmailTool(appContext))
+        registry.register(PlayMusicTool(appContext))
         registry.register(NotificationReplyTool(appContext))
         registry.register(GoHomeTool())
         registry.register(BackTool())
