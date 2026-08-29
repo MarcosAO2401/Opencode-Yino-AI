@@ -159,13 +159,12 @@ class CloudLLMProvider(
                                 trySend(LLMResult.Text(content))
                             }
                             choice.delta.tool_calls?.forEach { tc ->
-                                tc.function?.let { fun ->
-                                    if (fun.name != null || fun.arguments != null) {
-                                        trySend(LLMResult.ToolCall(
-                                            fun.name ?: "",
-                                            fun.arguments ?: ""
-                                        ))
-                                    }
+                                val fun = tc.function
+                                if (fun != null && (fun.name != null || fun.arguments != null)) {
+                                    trySend(LLMResult.ToolCall(
+                                        fun.name ?: "",
+                                        fun.arguments ?: ""
+                                    ))
                                 }
                                 choice.finish_reason?.let { reason ->
                                     if (reason == "stop" || reason == "tool_calls") {
