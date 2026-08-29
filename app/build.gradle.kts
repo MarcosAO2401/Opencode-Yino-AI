@@ -45,17 +45,6 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-    
-    // Disable KAPT for test sources - Room compiler not available for test source set
-    kapt {
-        correctErrorTypes = true
-        javacOptions {
-            option("-Xlint:unchecked")
-        }
-        // Disable KAPT for test sources
-        useBuildCache = true
-        // Only run KAPT on main source set
-    }
 }
 
 dependencies {
@@ -76,6 +65,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.12")
     implementation("androidx.room:room-runtime:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
+    kaptTest("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("androidx.work:work-runtime-ktx:2.9.0")
