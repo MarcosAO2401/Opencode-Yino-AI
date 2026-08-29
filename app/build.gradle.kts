@@ -45,6 +45,16 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    
+    // Disable KAPT for test sources - Room compiler not available for test source set
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        val name = this.name
+        if (name.contains("Test") || name.contains("test")) {
+            kotlinOptions {
+                freeCompilerArgs += "-Xskip-kapt"
+            }
+        }
+    }
 }
 
 dependencies {
