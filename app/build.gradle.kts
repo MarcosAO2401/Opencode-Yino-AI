@@ -75,4 +75,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-process:2.8.2")
     implementation("androidx.security:security-crypto:1.1.0")
     implementation("com.alphacephei:vosk-android:0.3.75")
+    
+    // JSON Schema validation for tool arguments
+    implementation("com.networknt:json-schema-validator:1.5.4")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.1")
 }

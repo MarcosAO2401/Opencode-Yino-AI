@@ -45,10 +45,21 @@
 # Keep Vosk
 -keep class org.vosk.** { *; }
 
+# Keep Jackson
+-keep class com.fasterxml.jackson.** { *; }
+-keepclassmembers class * {
+    @com.fasterxml.jackson.annotation.* *;
+}
+
+# Keep JSON Schema Validator
+-keep class com.networknt.schema.** { *; }
+
 # Suppress warnings for reflection
 -dontwarn kotlinx.serialization.**
 -dontwarn io.ktor.**
 -dontwarn org.vosk.**
+-dontwarn com.fasterxml.jackson.**
+-dontwarn com.networknt.schema.**
 
 # Keep Kotlin metadata
 -keep class kotlin.Metadata { *; }
