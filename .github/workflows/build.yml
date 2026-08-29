@@ -41,7 +41,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: app/build/reports/tests/
+          path: |
+            app/build/reports/tests/
+            app/build/test-results/
 
   build:
     name: Build Debug APK
@@ -113,7 +115,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lint-results
-          path: app/build/reports/lint-results*.html
+          path: |
+            app/build/reports/lint-results*.html
+            app/build/reports/lint-results-*.html
 
   dependency-check:
     name: Dependency Vulnerability Scan
@@ -139,6 +143,8 @@ jobs:
           args: >
             --failOnCVSS 7
             --suppression .github/dependency-check-suppression.xml
+            --scan ./app/build.gradle.kts
+            --scan ./gradle/libs.versions.toml
 
       - name: Upload Dependency Check Report
         if: always()

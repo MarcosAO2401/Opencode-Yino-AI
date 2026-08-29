@@ -14,6 +14,9 @@
     <!-- Llamadas (se usa ACTION_CALL si el usuario concede el permiso; si no, DIAL) -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- Features implícitos por permisos -->
+    <uses-feature android:name="android.hardware.telephony" required="false" />
+    <uses-feature android:name="android.hardware.microphone" required="false" />
     <!-- Automatización (se solicita manualmente en ajustes) -->
     <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE"
         tools:ignore="ProtectedPermissions" />
