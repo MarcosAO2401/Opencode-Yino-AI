@@ -117,8 +117,8 @@ fun YinoTheme(content: @Composable () -> Unit) {
 @Composable
 fun AnimatedYinoBackground(modifier: Modifier = Modifier) {
     val t = rememberInfiniteTransition(label = "bgGlow")
-    val a1 by t.animateFloat(0.08f, 0.16f, infiniteRepeatable(tween(5000), RepeatMode.Reverse))
-    val a2 by t.animateFloat(0.06f, 0.12f, infiniteRepeatable(tween(6500), RepeatMode.Reverse))
+    val a1 = t.animateFloat(0.08f, 0.16f, infiniteRepeatable(tween(5000), RepeatMode.Reverse))
+    val a2 = t.animateFloat(0.06f, 0.12f, infiniteRepeatable(tween(6500), RepeatMode.Reverse))
     Box(
         modifier.fillMaxSize().background(YinoColors.backgroundPrimary),
     ) {
@@ -126,7 +126,7 @@ fun AnimatedYinoBackground(modifier: Modifier = Modifier) {
             Modifier.wrapContentSize(Alignment.TopEnd).size(260.dp).offset(40.dp, (-40).dp)
                 .background(
                     Brush.radialGradient(
-                        listOf(YinoColors.accentSecondary.copy(alpha = a1), Color.Transparent),
+                        listOf(YinoColors.accentSecondary.copy(alpha = a1.value), Color.Transparent),
                     ),
                 ),
         )
@@ -134,7 +134,7 @@ fun AnimatedYinoBackground(modifier: Modifier = Modifier) {
             Modifier.wrapContentSize(Alignment.BottomStart).size(300.dp).offset((-60).dp, 60.dp)
                 .background(
                     Brush.radialGradient(
-                        listOf(YinoColors.accentPrimary.copy(alpha = a2), Color.Transparent),
+                        listOf(YinoColors.accentPrimary.copy(alpha = a2.value), Color.Transparent),
                     ),
                 ),
         )
