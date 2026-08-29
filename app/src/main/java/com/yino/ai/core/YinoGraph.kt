@@ -20,11 +20,18 @@ import com.yino.ai.core.tools.impl.ReadNotificationsTool
 import com.yino.ai.core.tools.impl.ReadScreenTool
 import com.yino.ai.core.tools.impl.ScrollTool
 import com.yino.ai.core.tools.impl.SendMessageTool
+import com.yino.ai.core.tools.impl.SetAlarmTool
+import com.yino.ai.core.tools.impl.SetTimerTool
+import com.yino.ai.core.tools.impl.AddCalendarEventTool
+import com.yino.ai.core.tools.impl.OpenUrlTool
+import com.yino.ai.core.tools.impl.SetVolumeTool
+import com.yino.ai.core.tools.impl.TakePhotoTool
 import com.yino.ai.core.tools.impl.TapTool
 import com.yino.ai.core.tools.impl.UiClickTool
 import com.yino.ai.core.tools.impl.UiTypeTool
 import com.yino.ai.core.tools.impl.UiWaitTool
 import com.yino.ai.core.tools.impl.WebSearchTool
+import com.yino.ai.core.tools.impl.NotificationReplyTool
 import com.yino.ai.data.memory.MemoryRepository
 
 object YinoGraph {
@@ -59,6 +66,13 @@ object YinoGraph {
         registry.register(OpenAppTool(appContext))
         registry.register(SendMessageTool(appContext))
         registry.register(WebSearchTool(appContext))
+        registry.register(SetAlarmTool(appContext))
+        registry.register(SetTimerTool(appContext))
+        registry.register(AddCalendarEventTool(appContext))
+        registry.register(OpenUrlTool(appContext))
+        registry.register(SetVolumeTool(appContext))
+        registry.register(TakePhotoTool(appContext))
+        registry.register(NotificationReplyTool(appContext))
         registry.register(GoHomeTool())
         registry.register(BackTool())
         registry.register(ReadScreenTool())

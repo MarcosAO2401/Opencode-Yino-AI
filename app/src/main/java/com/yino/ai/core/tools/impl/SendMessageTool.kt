@@ -1,10 +1,12 @@
 package com.yino.ai.core.tools.impl
 
+import android.app.RemoteInput
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.SystemClock
 import com.yino.ai.automation.YinoAccessibilityService
+import com.yino.ai.automation.YinoNotificationListener
 import com.yino.ai.core.tools.ActionRisk
 import com.yino.ai.core.tools.Tool
 import com.yino.ai.core.tools.ToolContext
@@ -45,6 +47,7 @@ class SendMessageTool(private val context: Context) : Tool {
                 "whatsapp" -> sendWhatsApp(contact, msg)
                 "telegram" -> sendTelegram(contact, msg)
                 "sms" -> sendSms(contact, msg)
+                "instagram", "facebook", "messenger", "fb", "ig" -> socialReply(app, contact, msg)
                 else -> openAndDelegate(app, contact, msg)
             }
         } catch (e: Exception) {
@@ -111,6 +114,39 @@ class SendMessageTool(private val context: Context) : Tool {
         } else {
             ToolResult(true, "Abrí la app de SMS con el mensaje. Revisa y pulsa enviar.")
         }
+    }
+
+    private fun socialReply(app: String, contact: String, msg: String): ToolResult {
+        val pkg = resolvePackage(app)
+        if (pkg == null) return ToolResult(false, "app '$app' no reconocida")
+        val target = YinoNotificationListener.instance()?.getReply(pkg)
+        if (target != null) {
+            return try {
+                val intent = Intent()
+                val bundle = android.os.Bundle()
+                bundle.putCharSequence(target.remoteInput.resultKey, msg)
+                android.app.RemoteInput.addResultsToIntent(
+                    arrayOf(target.remoteInput),
+                    intent,
+                    bundle,
+                )
+                target.pendingIntent.send(context, 0, intent)
+                ToolResult(true, "Mensaje enviado a $contact vía notificación de $app")
+            } catch (e: Exception) {
+                ToolResult(false, e.message ?: "error al responder en $app")
+            }
+        }
+        val launch = context.packageManager.getLaunchIntentForPackage(pkg)
+            ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (launch != null) {
+            context.startActivity(launch)
+            return ToolResult(
+                true,
+                "Abrí $app. Para terminar: usa ui_type para buscar a '$contact', ui_click para abrir el chat, " +
+                    "ui_type con \"$msg\" y ui_click en Enviar. (Tip: si hay una notificación reciente de ese chat, usa reply_notification.)",
+            )
+        }
+        return ToolResult(false, "No encontré la app '$app' instalada")
     }
 
     private fun openAndDelegate(app: String, contact: String, msg: String): ToolResult {
