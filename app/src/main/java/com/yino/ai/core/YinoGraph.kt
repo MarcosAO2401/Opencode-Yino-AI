@@ -67,9 +67,7 @@ object YinoGraph {
     private fun rebuildLlm() {
         llm = if (secure.useLocalLlm) {
             LocalLLMProvider(
-                baseUrl = secure.localModelPath.ifBlank {
-                    "http://127.0.0.1:11434/v1/chat/completions"
-                },
+                baseUrl = secure.localLlmBaseUrl.ifBlank { SecureSettings.DEFAULT_LOCAL_URL },
                 model = secure.localModelName.ifBlank { SecureSettings.DEFAULT_LOCAL_MODEL },
             )
         } else {
@@ -115,6 +113,11 @@ object YinoGraph {
 
     fun setLocalModelName(name: String) {
         secure.localModelName = name
+        if (secure.useLocalLlm) rebuildLlm()
+    }
+
+    fun setLocalLlmBaseUrl(url: String) {
+        secure.localLlmBaseUrl = url
         if (secure.useLocalLlm) rebuildLlm()
     }
 }

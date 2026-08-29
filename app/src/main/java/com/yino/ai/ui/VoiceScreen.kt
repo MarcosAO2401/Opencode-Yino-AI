@@ -56,7 +56,6 @@ fun VoiceScreen(viewModel: YinoViewModel) {
     val activity = context as? FragmentActivity
     val scope = rememberCoroutineScope()
     val tts = remember { AndroidTtsProvider(context.applicationContext) }
-    val modelPath = remember { YinoGraph.secure.voskModelPath }
     val vosk = remember { VoskSttProvider(context) }
     var modelReady by remember { mutableStateOf(false) }
     var listening by remember { mutableStateOf(false) }
@@ -69,6 +68,8 @@ fun VoiceScreen(viewModel: YinoViewModel) {
             vosk.shutdown()
         }
     }
+
+    fun currentVoskPath() = YinoGraph.secure.voskModelPath
 
     fun talk() {
         if (!modelReady) { status = "Modelo no disponible"; return }
@@ -123,7 +124,7 @@ fun VoiceScreen(viewModel: YinoViewModel) {
     }
 
     LaunchedEffect(Unit) {
-        modelReady = withContext(Dispatchers.IO) { vosk.loadModel(modelPath) }
+        modelReady = withContext(Dispatchers.IO) { vosk.loadModel(currentVoskPath()) }
         status = if (modelReady) "Pulsa para hablar" else "Modelo de voz no encontrado"
     }
 
@@ -148,7 +149,7 @@ fun VoiceScreen(viewModel: YinoViewModel) {
         )
         if (!modelReady) {
             Text(
-                text = "Descarga vosk-model-small-es-0.42 y colócalo en:\n$modelPath",
+                text = "Descarga vosk-model-small-es-0.42 y colócalo en:\n${currentVoskPath()}",
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(8.dp),
             )

@@ -48,6 +48,10 @@ class SecureSettings(context: Context) {
         get() = prefs.getString(KEY_MODEL_NAME, DEFAULT_LOCAL_MODEL) ?: DEFAULT_LOCAL_MODEL
         set(value) = prefs.edit().putString(KEY_MODEL_NAME, value).apply()
 
+    var localLlmBaseUrl: String
+        get() = prefs.getString(KEY_LOCAL_LLM_URL, DEFAULT_LOCAL_URL) ?: DEFAULT_LOCAL_URL
+        set(value) = prefs.edit().putString(KEY_LOCAL_LLM_URL, value).apply()
+
     var voskModelPath: String
         get() = prefs.getString(KEY_VOSK, DEFAULT_VOSK) ?: DEFAULT_VOSK
         set(value) = prefs.edit().putString(KEY_VOSK, value).apply()
@@ -63,6 +67,7 @@ class SecureSettings(context: Context) {
         private const val KEY_LOCAL = "use_local_llm"
         private const val KEY_MODEL = "local_model_path"
         private const val KEY_VOSK = "vosk_model_path"
+        private const val KEY_LOCAL_LLM_URL = "local_llm_base_url"
         private const val KEY_WAKE = "wake_word_enabled"
         const val DEFAULT_VOSK =
             "/storage/emulated/0/Android/data/com.yino.ai/files/vosk-model-small-es-0.42"

@@ -42,7 +42,7 @@ fun SettingsScreen(viewModel: YinoViewModel) {
     var apiKey by remember { mutableStateOf(YinoGraph.secure.apiKey) }
     var baseUrl by remember { mutableStateOf(YinoGraph.secure.llmBaseUrl) }
     var cloudModel by remember { mutableStateOf(YinoGraph.secure.llmModel) }
-    var modelPath by remember { mutableStateOf(YinoGraph.secure.localModelPath) }
+    var localLlmBaseUrl by remember { mutableStateOf(YinoGraph.secure.localLlmBaseUrl) }
     var localModel by remember { mutableStateOf(YinoGraph.secure.localModelName) }
     var wakeWord by remember { mutableStateOf(YinoGraph.secure.wakeWordEnabled) }
     var listening by remember { mutableStateOf(false) }
@@ -69,7 +69,7 @@ fun SettingsScreen(viewModel: YinoViewModel) {
             try {
                 val dest = File(context.getExternalFilesDir(null), "vosk-model-small-es-0.42")
                 copyUriTree(context, uri, dest)
-                val ok = File(dest, "am").isDirectory || File(dest, "conf").isDirectory
+                val ok = File(dest, "am").isDirectory && File(dest, "conf").isDirectory
                 if (!ok) {
                     voskStatus = "La carpeta elegida no parece un modelo Vosk " +
                         "(debe contener 'am' y 'conf'). Elige la carpeta vosk-model-small-es-0.42."
@@ -135,8 +135,8 @@ fun SettingsScreen(viewModel: YinoViewModel) {
             )
         } else {
             OutlinedTextField(
-                value = modelPath,
-                onValueChange = { modelPath = it },
+                value = localLlmBaseUrl,
+                onValueChange = { localLlmBaseUrl = it },
                 label = { Text("URL base del LLM local (OpenAI-compatible)") },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -147,7 +147,7 @@ fun SettingsScreen(viewModel: YinoViewModel) {
                 modifier = Modifier.fillMaxWidth(),
             )
             Button(onClick = {
-                YinoGraph.setLocalModelPath(modelPath)
+                YinoGraph.setLocalLlmBaseUrl(localLlmBaseUrl)
                 YinoGraph.setLocalModelName(localModel)
                 saved = true
             }) { Text("Guardar servidor local") }
