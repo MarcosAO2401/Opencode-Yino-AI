@@ -54,10 +54,14 @@ fun IdentityScreen(viewModel: YinoViewModel) {
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Exigir voz (speaker verification)", modifier = Modifier.weight(1f))
-            Switch(checked = requireVoice, onCheckedChange = {
-                requireVoice = it
-                YinoGraph.identity.requireVoice = it
-            })
+            Switch(
+                checked = requireVoice,
+                enabled = false,
+                onCheckedChange = {
+                    requireVoice = it
+                    YinoGraph.identity.requireVoice = it
+                },
+            )
         }
 
         Button(onClick = {

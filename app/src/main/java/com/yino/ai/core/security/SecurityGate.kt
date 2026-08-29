@@ -1,9 +1,8 @@
 package com.yino.ai.core.security
 
 import com.yino.ai.core.tools.ActionRisk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.timeout
 import kotlinx.coroutines.withTimeout
 import kotlin.time.Duration.Companion.seconds
 
@@ -24,32 +23,38 @@ class SecurityGate {
     private val _pending = MutableSharedFlow<PendingApproval>(extraBufferCapacity = 16)
     val pendingApprovals = _pending
 
-    private val responses = LinkedHashMap<String, Boolean>()
+    private val deferreds = LinkedHashMap<String, CompletableDeferred<Boolean>>()
+
+    /**
+     * Si es false, las acciones MEDIO/ALTO se niegan de inmediato (fail-closed)
+     * sin esperar UI. Lo usa el servicio de voz en segundo plano, que no tiene
+     * interfaz para pedir confirmación.
+     */
+    var interactive = true
 
     fun requiresConfirmation(risk: ActionRisk): Boolean = risk != ActionRisk.LOW
 
     /**
      * Solicita autorizacion. FAIL-CLOSED: si no hay respuesta explicita del
-     * usuario (UI o confirmacion por voz), se deniega. Esto evita que el
-     * asistente en segundo plano (servicio de voz sin UI) ejecute acciones de
-     * riesgo MEDIO/ALTO solo por el wake-word. El Chat tiene un dialogo que
-     * llama a respond(id, true) y aprueba explicitamente.
+     * usuario (UI o confirmacion por voz), se deniega tras 120s.
      */
     suspend fun authorize(toolId: String, risk: ActionRisk, reason: String): Boolean {
         if (risk == ActionRisk.LOW) return true
-        val id = "$toolId-${System.currentTimeMillis()}"
+        if (!interactive) return false
+        val id = "$toolId-${System.currentTimeMillis()}-${deferreds.size}"
+        val deferred = CompletableDeferred<Boolean>()
+        synchronized(deferreds) { deferreds[id] = deferred }
         _pending.tryEmit(PendingApproval(id, toolId, risk, reason))
         return try {
-            withTimeout(120.seconds) {
-                responses[id] ?: false
-            }
+            withTimeout(120.seconds) { deferred.await() }
         } catch (e: Exception) {
-            responses.remove(id)
+            synchronized(deferreds) { deferreds.remove(id) }
             false
         }
     }
 
     fun respond(requestId: String, approved: Boolean) {
-        responses[requestId] = approved
+        val d = synchronized(deferreds) { deferreds.remove(requestId) }
+        d?.complete(approved)
     }
 }

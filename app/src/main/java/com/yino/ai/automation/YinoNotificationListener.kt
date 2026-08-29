@@ -31,6 +31,11 @@ class YinoNotificationListener : NotificationListenerService() {
         }
     }
 
+    override fun onListenerConnected() {
+        instance = this
+        super.onListenerConnected()
+    }
+
     override fun onNotificationRemoved(sbn: StatusBarNotification) {}
 
     fun recent(): List<Notice> = synchronized(buffer) { buffer.toList() }

@@ -2,6 +2,8 @@ package com.yino.ai.core.security
 
 import java.io.File
 import java.time.Instant
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Registro inmutable de todas las acciones ejecutadas por el agente.
@@ -25,13 +27,14 @@ object AuditLog {
         file = File(context.filesDir, "yino_audit.log")
     }
 
-    @Synchronized
-    fun record(toolId: String, risk: String, approved: Boolean, result: String) {
+    suspend fun record(toolId: String, risk: String, approved: Boolean, result: String) {
         val entry = Entry(Instant.now(), toolId, risk, approved, result)
         entries += entry
         if (::file.isInitialized) {
-            runCatching {
-                file.appendText("${entry.ts}\t$toolId\t$risk\t$approved\t${result.replace("\n", " ")}\n")
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    file.appendText("${entry.ts}\t$toolId\t$risk\t$approved\t${result.replace("\n", " ")}\n")
+                }
             }
         }
     }

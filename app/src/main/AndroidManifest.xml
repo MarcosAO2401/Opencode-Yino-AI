@@ -11,8 +11,6 @@
     <!-- Internet (LLM cloud) -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- Llamadas (solo si el usuario lo autoriza explícitamente) -->
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <!-- Automatización (se solicita manualmente en ajustes) -->
     <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE"
         tools:ignore="ProtectedPermissions" />
@@ -21,7 +19,7 @@
 
     <application
         android:name=".YinoApplication"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"

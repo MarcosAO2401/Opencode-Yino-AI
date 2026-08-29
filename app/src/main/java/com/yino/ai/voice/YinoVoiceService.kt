@@ -14,11 +14,16 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.yino.ai.MainActivity
 import com.yino.ai.core.YinoGraph
+import com.yino.ai.core.agent.AgentLoop
+import com.yino.ai.core.security.SecurityGate
+import com.yino.ai.automation.YinoAccessibilityService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Servicio en primer plano que mantiene a Yino ESCUCHANDO manos libres:
@@ -77,14 +82,32 @@ class YinoVoiceService : Service() {
         scope.launch {
             wake?.stop()
             wake = null
-            val text = vosk.listen()
+            val text = runCatching { withTimeoutOrNull(12.seconds) { vosk.listen() } ?: "" }
+                .getOrDefault("")
             vosk.stop()
             if (text.isNotBlank()) {
-                val reply = YinoGraph.agent.run(text)
+                val reply = runBackgroundAgent(text)
                 tts.speak(reply)
             }
             if (YinoGraph.secure.wakeWordEnabled) startWake()
         }
+    }
+
+    /**
+     * En modo manos libres no hay UI para pedir confirmacion, asi que usa una
+     * puerta fail-closed: las acciones MEDIO/ALTO se niegan (sin colgar 120s).
+     */
+    private suspend fun runBackgroundAgent(text: String): String {
+        val gate = SecurityGate().apply { interactive = false }
+        val agent = AgentLoop(
+            YinoGraph.llm,
+            YinoGraph.registry,
+            gate,
+            accessibilityAvailable = { YinoAccessibilityService.isEnabled() },
+            grantedPermissions = { emptySet() },
+        )
+        return runCatching { agent.run(text) }
+            .getOrDefault("(no pude procesar el comando en modo manos libres)")
     }
 
     private fun requestAudioFocus() {

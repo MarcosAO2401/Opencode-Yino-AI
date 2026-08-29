@@ -22,8 +22,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import android.content.Intent
 import android.content.Context
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.compose.runtime.rememberCoroutineScope
 import com.yino.ai.core.YinoGraph
@@ -46,6 +49,14 @@ fun SettingsScreen(viewModel: YinoViewModel) {
     var saved by remember { mutableStateOf(false) }
     var voskStatus by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+    val recordAudioLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        if (granted) {
+            context.startForegroundService(Intent(context, YinoVoiceService::class.java))
+            listening = true
+        }
+    }
     val voskPicker = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocumentTree(),
     ) { uri ->
@@ -176,8 +187,14 @@ fun SettingsScreen(viewModel: YinoViewModel) {
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Button(onClick = {
-                context.startForegroundService(Intent(context, YinoVoiceService::class.java))
-                listening = true
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
+                    PackageManager.PERMISSION_GRANTED
+                ) {
+                    context.startForegroundService(Intent(context, YinoVoiceService::class.java))
+                    listening = true
+                } else {
+                    recordAudioLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                }
             }) { Text("Activar escucha") }
             Button(onClick = {
                 context.stopService(Intent(context, YinoVoiceService::class.java))

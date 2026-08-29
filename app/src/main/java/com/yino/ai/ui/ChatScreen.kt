@@ -42,7 +42,11 @@ fun ChatScreen(viewModel: YinoViewModel) {
     val scope = rememberCoroutineScope()
 
     if (pending != null) {
-        ApprovalDialog(pending!!, viewModel)
+        ApprovalDialog(
+            pending!!,
+            onApprove = { viewModel.approve(pending!!.requestId) },
+            onDeny = { viewModel.deny(pending!!.requestId) },
+        )
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
@@ -111,28 +115,4 @@ fun ChatScreen(viewModel: YinoViewModel) {
             }
         }
     }
-}
-
-@Composable
-private fun ApprovalDialog(
-    approval: com.yino.ai.core.security.SecurityGate.PendingApproval,
-    viewModel: YinoViewModel,
-) {
-    AlertDialog(
-        onDismissRequest = { viewModel.deny(approval.requestId) },
-        title = { Text("Confirmar acción de riesgo ${approval.risk}") },
-        text = {
-            Column {
-                Text("Herramienta: ${approval.toolId}")
-                Text("Riesgo: ${approval.risk}")
-                Text("Motivo: ${approval.reason}")
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { viewModel.approve(approval.requestId) }) { Text("Aprobar") }
-        },
-        dismissButton = {
-            OutlinedButton(onClick = { viewModel.deny(approval.requestId) }) { Text("Denegar") }
-        },
-    )
 }

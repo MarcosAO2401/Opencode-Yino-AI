@@ -70,17 +70,21 @@ class CloudLLMProvider(
             temperature = request.temperature,
             tools = tools,
         )
-        val resp: Resp = client.post(baseUrl) {
-            contentType(ContentType.Application.Json)
-            header("Authorization", "Bearer $apiKey")
-            setBody(body)
-        }.body()
-        val choice = resp.choices.firstOrNull() ?: return LLMResult.Text("(sin respuesta)")
-        val tc = choice.message.tool_calls?.firstOrNull()
-        return if (tc != null) {
-            LLMResult.ToolCall(tc.function.name, tc.function.arguments)
-        } else {
-            LLMResult.Text(choice.message.content ?: "")
+        return try {
+            val resp: Resp = client.post(baseUrl) {
+                contentType(ContentType.Application.Json)
+                header("Authorization", "Bearer $apiKey")
+                setBody(body)
+            }.body()
+            val choice = resp.choices.firstOrNull() ?: return LLMResult.Text("(sin respuesta del LLM)")
+            val tc = choice.message.tool_calls?.firstOrNull()
+            if (tc != null) {
+                LLMResult.ToolCall(tc.function.name, tc.function.arguments)
+            } else {
+                LLMResult.Text(choice.message.content ?: "")
+            }
+        } catch (e: Exception) {
+            LLMResult.Text("(Error del LLM en $baseUrl: ${e.message})")
         }
     }
 }
