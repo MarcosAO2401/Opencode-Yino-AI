@@ -21,6 +21,9 @@ import com.yino.ai.core.tools.impl.ReadScreenTool
 import com.yino.ai.core.tools.impl.ScrollTool
 import com.yino.ai.core.tools.impl.SendMessageTool
 import com.yino.ai.core.tools.impl.TapTool
+import com.yino.ai.core.tools.impl.UiClickTool
+import com.yino.ai.core.tools.impl.UiTypeTool
+import com.yino.ai.core.tools.impl.UiWaitTool
 import com.yino.ai.core.tools.impl.WebSearchTool
 import com.yino.ai.data.memory.MemoryRepository
 
@@ -62,6 +65,9 @@ object YinoGraph {
         registry.register(ReadNotificationsTool())
         registry.register(ScrollTool())
         registry.register(TapTool())
+        registry.register(UiClickTool())
+        registry.register(UiTypeTool())
+        registry.register(UiWaitTool())
     }
 
     private fun rebuildLlm() {

@@ -12,7 +12,7 @@ class IdentityGate(
     private val face: FaceAuthProvider,
     private val voice: VoiceAuthProvider,
 ) {
-    var requireFace: Boolean = true
+    var requireFace: Boolean = false
     var requireVoice: Boolean = false
 
     val faceEnrolled: Boolean get() = face.isHardwareAvailable

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -104,6 +105,16 @@ fun SettingsScreen(viewModel: YinoViewModel) {
         }
 
         if (!localLlm) {
+            Text("Presets de proveedor (toca para rellenar):", style = MaterialTheme.typography.bodySmall)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                PresetChip("OpenAI") { baseUrl = "https://api.openai.com/v1/chat/completions"; cloudModel = "gpt-4o-mini" }
+                PresetChip("Groq") { baseUrl = "https://api.groq.com/openai/v1/chat/completions"; cloudModel = "llama-3.3-70b-versatile" }
+                PresetChip("Gemini") { baseUrl = "https://generativelanguage.googleapis.com/v1beta/openai/"; cloudModel = "gemini-2.0-flash" }
+                PresetChip("DeepSeek") { baseUrl = "https://api.deepseek.com/v1/chat/completions"; cloudModel = "deepseek-chat" }
+            }
             OutlinedTextField(
                 value = apiKey,
                 onValueChange = { apiKey = it },
@@ -128,6 +139,29 @@ fun SettingsScreen(viewModel: YinoViewModel) {
                 YinoGraph.setLlmModel(cloudModel)
                 saved = true
             }) { Text("Guardar config del LLM (cifrada)") }
+            Button(onClick = {
+                scope.launch(Dispatchers.IO) {
+                    YinoGraph.setApiKey(apiKey)
+                    YinoGraph.setLlmBaseUrl(baseUrl)
+                    YinoGraph.setLlmModel(cloudModel)
+                    val res = runCatching {
+                        val r = YinoGraph.llm.complete(
+                            com.yino.ai.core.llm.LLMRequest(
+                                messages = listOf(
+                                    com.yino.ai.core.llm.ChatMessage(
+                                        com.yino.ai.core.llm.Role.USER, "Responde solo: OK",
+                                    ),
+                                ),
+                            ),
+                        )
+                        when (r) {
+                            is com.yino.ai.core.llm.LLMResult.Text -> r.content
+                            is com.yino.ai.core.llm.LLMResult.ToolCall -> "tool: ${r.name}"
+                        }
+                    }.getOrDefault("Error: ${apiKey.isBlank().let { if (it) "falta API key" else "no hay respuesta" }}")
+                    voskStatus = "Prueba de conexión: $res"
+                }
+            }) { Text("Probar conexión") }
             Text(
                 "Compatible con OpenAI y proveedores OpenAI-compatible " +
                     "(DeepSeek, Groq, Together, OpenRouter, etc.). Cambia la URL y el modelo.",
@@ -217,6 +251,15 @@ private fun copyUriTree(context: Context, treeUri: android.net.Uri, dest: File) 
     dest.mkdirs()
     val tree = DocumentFile.fromTreeUri(context, treeUri) ?: return
     copyDoc(context, tree, dest)
+}
+
+@Composable
+private fun PresetChip(label: String, onClick: () -> Unit) {
+    androidx.compose.material3.FilterChip(
+        selected = false,
+        onClick = onClick,
+        label = { Text(label) },
+    )
 }
 
 private fun copyDoc(context: Context, doc: DocumentFile, dest: File) {
