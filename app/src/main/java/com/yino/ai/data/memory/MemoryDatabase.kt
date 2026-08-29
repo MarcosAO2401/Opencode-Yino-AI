@@ -4,10 +4,11 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 
 @Database(
     entities = [ConversationEntity::class, MessageEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class MemoryDatabase : RoomDatabase() {
@@ -23,7 +24,7 @@ abstract class MemoryDatabase : RoomDatabase() {
                     context.applicationContext,
                     MemoryDatabase::class.java,
                     "yino_memory"
-                ).fallbackToDestructiveMigration().build().also { INSTANCE = it }
+                ).addMigrations(Migrations.MIGRATION_1_2).build().also { INSTANCE = it }
             }
         }
     }

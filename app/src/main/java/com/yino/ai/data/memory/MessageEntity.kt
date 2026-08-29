@@ -2,6 +2,7 @@ package com.yino.ai.data.memory
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -11,7 +12,8 @@ import androidx.room.PrimaryKey
         parentColumns = ["id"],
         childColumns = ["conversationId"],
         onDelete = ForeignKey.CASCADE
-    )]
+    )],
+    indices = [Index(value = ["conversationId", "ts"], name = "idx_messages_conversationId_ts")]
 )
 data class MessageEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
