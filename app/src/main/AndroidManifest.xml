@@ -36,6 +36,7 @@
         <!-- REQUIRED: exported="true" is needed for MAIN/LAUNCHER intent filter -->
         <activity
             android:name=".MainActivity"
+            <!-- REQUIRED: exported="true" is needed for MAIN/LAUNCHER intent filter -->
             android:exported="true"
             android:theme="@style/Theme.YinoAI">
             <intent-filter>
