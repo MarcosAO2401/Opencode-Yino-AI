@@ -33,6 +33,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         tools:targetApi="34">
 
+        <!-- REQUIRED: exported="true" is needed for MAIN/LAUNCHER intent filter -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
