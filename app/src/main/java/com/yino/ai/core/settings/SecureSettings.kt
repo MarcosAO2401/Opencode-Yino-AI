@@ -68,6 +68,10 @@ class SecureSettings(context: Context) {
         get() = prefs.getBoolean(KEY_REQUIRE_VOICE, false)
         set(value) = prefs.edit().putBoolean(KEY_REQUIRE_VOICE, value).apply()
 
+    var enrolledPassphrase: String
+        get() = prefs.getString(KEY_PASSPHRASE, "") ?: ""
+        set(value) = prefs.edit().putString(KEY_PASSPHRASE, value).apply()
+
     companion object {
         private const val KEY_API = "llm_api_key"
         private const val KEY_URL = "llm_base_url"
@@ -75,6 +79,7 @@ class SecureSettings(context: Context) {
         private const val KEY_LOCAL = "use_local_llm"
         private const val KEY_MODEL = "local_model_path"
         private const val KEY_VOSK = "vosk_model_path"
+        private const val KEY_PASSPHRASE = "enrolled_passphrase"
         private const val KEY_LOCAL_LLM_URL = "local_llm_base_url"
         private const val KEY_WAKE = "wake_word_enabled"
         private const val KEY_REQUIRE_FACE = "require_face"

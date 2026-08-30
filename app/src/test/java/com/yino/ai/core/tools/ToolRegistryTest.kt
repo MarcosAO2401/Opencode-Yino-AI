@@ -14,7 +14,7 @@ class ToolRegistryTest {
             override val description = "Test tool"
             override val parametersJsonSchema = "{}"
             override val risk = ActionRisk.LOW
-            override val requiredPermissions = emptyList()
+            override val requiredPermissions = emptyList<String>()
             override suspend fun execute(arguments: org.json.JSONObject, ctx: ToolContext): ToolResult =
                 ToolResult(true, "ok")
         }
@@ -40,13 +40,13 @@ class ToolRegistryTest {
             override val description = "Exec tool"
             override val parametersJsonSchema = "{}"
             override val risk = ActionRisk.LOW
-            override val requiredPermissions = emptyList()
+            override val requiredPermissions = emptyList<String>()
             override suspend fun execute(arguments: org.json.JSONObject, ctx: ToolContext): ToolResult =
                 ToolResult(true, "executed")
         }
         registry.register(tool)
 
-        val ctx = ToolContext(accessibilityAvailable = false, grantedPermissions = emptySet())
+        val ctx = ToolContext(accessibilityAvailable = false, permissions = emptySet())
         val result = registry.execute("exec_tool", "{}", ctx)
         assertTrue("Execution should succeed", result.success)
         assertEquals("executed", result.message)
@@ -55,7 +55,7 @@ class ToolRegistryTest {
     @Test
     fun `execute returns error for unknown tool`() = runBlockingTest {
         val registry = ToolRegistry()
-        val ctx = ToolContext(accessibilityAvailable = false, grantedPermissions = emptySet())
+        val ctx = ToolContext(accessibilityAvailable = false, permissions = emptySet())
         val result = registry.execute("unknown", "{}", ctx)
         assertFalse("Unknown tool should fail", result.success)
         assertTrue("Error message should mention unknown", result.message.contains("no existe"))
@@ -69,7 +69,7 @@ class ToolRegistryTest {
             override val description = "Tool 1"
             override val parametersJsonSchema = "{\"type\":\"object\"}"
             override val risk = ActionRisk.LOW
-            override val requiredPermissions = emptyList()
+            override val requiredPermissions = emptyList<String>()
             override suspend fun execute(arguments: org.json.JSONObject, ctx: ToolContext): ToolResult = ToolResult(true, "")
         }
         val tool2 = object : Tool {
@@ -77,7 +77,7 @@ class ToolRegistryTest {
             override val description = "Tool 2"
             override val parametersJsonSchema = "{\"type\":\"object\",\"properties\":{\"x\":{\"type\":\"string\"}}}"
             override val risk = ActionRisk.MEDIUM
-            override val requiredPermissions = emptyList()
+            override val requiredPermissions = emptyList<String>()
             override suspend fun execute(arguments: org.json.JSONObject, ctx: ToolContext): ToolResult = ToolResult(true, "")
         }
         registry.register(tool1)
@@ -89,8 +89,8 @@ class ToolRegistryTest {
         val spec2 = specs.find { it.name == "tool2" }
         assertNotNull(spec1)
         assertNotNull(spec2)
-        assertEquals(ActionRisk.LOW, spec1?.risk)
-        assertEquals(ActionRisk.MEDIUM, spec2?.risk)
+        assertEquals(ActionRisk.LOW, registry.get("tool1")?.risk)
+        assertEquals(ActionRisk.MEDIUM, registry.get("tool2")?.risk)
     }
 
     @Test
@@ -101,7 +101,7 @@ class ToolRegistryTest {
             override val description = "v1"
             override val parametersJsonSchema = "{}"
             override val risk = ActionRisk.LOW
-            override val requiredPermissions = emptyList()
+            override val requiredPermissions = emptyList<String>()
             override suspend fun execute(arguments: org.json.JSONObject, ctx: ToolContext): ToolResult = ToolResult(true, "v1")
         }
         val tool2 = object : Tool {
@@ -109,7 +109,7 @@ class ToolRegistryTest {
             override val description = "v2"
             override val parametersJsonSchema = "{}"
             override val risk = ActionRisk.HIGH
-            override val requiredPermissions = emptyList()
+            override val requiredPermissions = emptyList<String>()
             override suspend fun execute(arguments: org.json.JSONObject, ctx: ToolContext): ToolResult = ToolResult(true, "v2")
         }
         registry.register(tool1)

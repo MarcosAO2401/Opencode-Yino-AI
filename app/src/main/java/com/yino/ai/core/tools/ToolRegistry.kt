@@ -32,7 +32,7 @@ class ToolRegistry {
     }
 
     suspend fun execute(id: String, argumentsJson: String, ctx: ToolContext): ToolResult {
-        val tool = tools[id] ?: return ToolResult(false, "herramienta desconocida: $id")
+        val tool = tools[id] ?: return ToolResult(false, "herramienta desconocida (no existe): $id")
         
         // Validate arguments against JSON schema
         val schema = schemas[id]

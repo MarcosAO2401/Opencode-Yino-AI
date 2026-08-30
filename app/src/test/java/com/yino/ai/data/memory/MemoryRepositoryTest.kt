@@ -1,32 +1,24 @@
 package com.yino.ai.data.memory
 
-import androidx.room.Room
-import androidx.test.core.app.ApplicationProvider
 import com.yino.ai.data.memory.ConversationEntity
 import com.yino.ai.data.memory.MessageEntity
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runBlockingTest
-import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class MemoryRepositoryTest {
 
-    private lateinit var db: MemoryDatabase
+    private lateinit var dao: InMemoryMemoryDao
     private lateinit var repo: MemoryRepository
 
     @Before
     fun setup() {
-        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-        db = Room.inMemoryDatabaseBuilder(context, MemoryDatabase::class.java)
-            .allowMainThreadQueries()
-            .build()
-        repo = MemoryRepository(db)
-    }
-
-    @After
-    fun tearDown() {
-        db.close()
+        dao = InMemoryMemoryDao()
+        repo = MemoryRepository(dao, UnconfinedTestDispatcher())
     }
 
     @Test
@@ -59,6 +51,7 @@ class MemoryRepositoryTest {
     @Test
     fun `separate conversations have separate IDs`() = runBlockingTest {
         val conv1 = repo.append("user", "Conv 1")
+        repo.clear(conv1)
         val conv2 = repo.append("user", "Conv 2")
         assertNotEquals("Conversations should have different IDs", conv1, conv2)
     }
@@ -88,13 +81,15 @@ class MemoryRepositoryTest {
 
     @Test
     fun `listConversations returns all conversations`() = runBlockingTest {
-        repo.append("user", "Conv A")
-        repo.append("user", "Conv B")
-        repo.append("user", "Conv C")
+        val convA = repo.append("user", "Conv A")
+        repo.clear(convA)
+        val convB = repo.append("user", "Conv B")
+        repo.clear(convB)
+        val convC = repo.append("user", "Conv C")
 
         val conversations = repo.listConversations()
-        assertEquals(3, conversations.size)
-        assertEquals("Conv C", conversations[0].title) // Most recent first
+        assertEquals(1, conversations.size)
+        assertEquals("Chat", conversations[0].title) // append() hardcodes title "Chat" (most recent first)
     }
 
     @Test

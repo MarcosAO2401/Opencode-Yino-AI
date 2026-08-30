@@ -1,21 +1,31 @@
 package com.yino.ai.core.identity
 
 import androidx.fragment.app.FragmentActivity
+import com.yino.ai.core.settings.SecureSettings
 
 /**
  * Puerta de identidad del dueño. Combina rostro (biometric del sistema)
  * y voz (embeddings on-device). Un comando solo se ejecuta si pasa el
  * factor(es) exigido(s). Esto cumple el requisito: "solo la persona
  * autorizada puede pedirle algo a Yino".
+ *
+ * Los flags requireFace/requireVoice se delegan a SecureSettings para que
+ * persistan en EncryptedSharedPreferences entre sesiones.
  */
 class IdentityGate(
     private val face: FaceAuthProvider,
     private val voice: VoiceAuthProvider,
+    private val secure: SecureSettings,
 ) {
-    var requireFace: Boolean = false
-    var requireVoice: Boolean = false
+    var requireFace: Boolean
+        get() = secure.requireFace
+        set(value) { secure.requireFace = value }
 
-    val faceEnrolled: Boolean get() = face.isHardwareAvailable
+    var requireVoice: Boolean
+        get() = secure.requireVoice
+        set(value) { secure.requireVoice = value }
+
+    fun faceEnrolled(context: android.content.Context): Boolean = face.isHardwareAvailable(context)
     val voiceEnrolled: Boolean get() = voice.isEnrolled
 
     suspend fun verifyFace(activity: FragmentActivity): Boolean =

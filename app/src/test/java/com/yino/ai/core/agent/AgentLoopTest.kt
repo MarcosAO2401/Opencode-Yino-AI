@@ -5,6 +5,7 @@ import com.yino.ai.core.llm.LLMRequest
 import com.yino.ai.core.llm.LLMResult
 import com.yino.ai.core.llm.Role
 import com.yino.ai.core.security.SecurityGate
+import com.yino.ai.core.tools.ActionRisk
 import com.yino.ai.core.tools.Tool
 import com.yino.ai.core.tools.ToolContext
 import com.yino.ai.core.tools.ToolRegistry
@@ -28,7 +29,7 @@ class AgentLoopTest {
         override val description = "Test tool"
         override val parametersJsonSchema = "{}"
         override val risk = ActionRisk.LOW
-        override val requiredPermissions = emptyList()
+        override val requiredPermissions = emptyList<String>()
         override suspend fun execute(arguments: org.json.JSONObject, ctx: ToolContext): ToolResult = result
     }
 
@@ -64,7 +65,7 @@ class AgentLoopTest {
                 override val description = "Echo"
                 override val parametersJsonSchema = "{}"
                 override val risk = ActionRisk.LOW
-                override val requiredPermissions = emptyList()
+                override val requiredPermissions = emptyList<String>()
                 override suspend fun execute(arguments: org.json.JSONObject, ctx: ToolContext): ToolResult =
                     ToolResult(true, "Echoed: test")
             })
@@ -86,7 +87,7 @@ class AgentLoopTest {
                 override val description = "Fails"
                 override val parametersJsonSchema = "{}"
                 override val risk = ActionRisk.LOW
-                override val requiredPermissions = emptyList()
+                override val requiredPermissions = emptyList<String>()
                 override suspend fun execute(arguments: org.json.JSONObject, ctx: ToolContext): ToolResult =
                     ToolResult(false, "Tool failed")
             })
@@ -107,7 +108,7 @@ class AgentLoopTest {
                 override val description = "Risky"
                 override val parametersJsonSchema = "{}"
                 override val risk = ActionRisk.HIGH
-                override val requiredPermissions = emptyList()
+                override val requiredPermissions = emptyList<String>()
                 override suspend fun execute(arguments: org.json.JSONObject, ctx: ToolContext): ToolResult =
                     ToolResult(true, "Should not execute")
             })
@@ -137,7 +138,7 @@ class AgentLoopTest {
                 override val description = "Step"
                 override val parametersJsonSchema = "{}"
                 override val risk = ActionRisk.LOW
-                override val requiredPermissions = emptyList()
+                override val requiredPermissions = emptyList<String>()
                 override suspend fun execute(arguments: org.json.JSONObject, ctx: ToolContext): ToolResult =
                     ToolResult(true, "step done")
             })

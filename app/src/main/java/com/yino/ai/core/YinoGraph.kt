@@ -8,7 +8,7 @@ import com.yino.ai.core.llm.LocalLLMProvider
 import com.yino.ai.core.llm.LLMProvider
 import com.yino.ai.core.identity.IdentityGate
 import com.yino.ai.core.identity.SystemBiometricFaceAuth
-import com.yino.ai.core.identity.EmbeddingVoiceAuthProvider
+import com.yino.ai.core.identity.VoskPassphraseVoiceAuth
 import com.yino.ai.core.security.SecurityGate
 import com.yino.ai.core.security.AuditLog
 import com.yino.ai.core.settings.SecureSettings
@@ -46,10 +46,8 @@ object YinoGraph {
         private set
     val registry: ToolRegistry = ToolRegistry()
     val security: SecurityGate = SecurityGate()
-    val identity: IdentityGate = IdentityGate(
-        face = SystemBiometricFaceAuth(),
-        voice = EmbeddingVoiceAuthProvider(),
-    )
+    lateinit var identity: IdentityGate
+        private set
     lateinit var memory: MemoryRepository
         private set
     lateinit var agent: AgentLoop
@@ -59,6 +57,11 @@ object YinoGraph {
         if (::appContext.isInitialized) return
         appContext = context.applicationContext
         secure = SecureSettings(appContext)
+        identity = IdentityGate(
+            face = SystemBiometricFaceAuth(),
+            voice = VoskPassphraseVoiceAuth(secure),
+            secure = secure,
+        )
         AuditLog.init(appContext)
         memory = MemoryRepository(appContext)
         registerTools()

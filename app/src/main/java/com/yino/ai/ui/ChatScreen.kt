@@ -1,6 +1,7 @@
 package com.yino.ai.ui
 
 import android.widget.Toast
+import android.graphics.Bitmap
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -16,7 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.Icons
@@ -41,6 +42,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.yino.ai.core.YinoGraph
 import com.yino.ai.ui.components.YinoAvatar
@@ -66,6 +69,23 @@ fun ChatScreen(viewModel: YinoViewModel) {
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     var showAttach by remember { mutableStateOf(false) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { viewModel.append("user", "📎 ${it.lastPathSegment ?: "imagen"}") }
+        showAttach = false
+    }
+    val docLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { viewModel.append("user", "📎 ${it.lastPathSegment ?: "documento"}") }
+        showAttach = false
+    }
+    val audioLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { viewModel.append("user", "📎 ${it.lastPathSegment ?: "audio"}") }
+        showAttach = false
+    }
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bmp: Bitmap? ->
+        bmp?.let { viewModel.append("user", "📎 cámara") }
+        showAttach = false
+    }
 
     if (pending != null) {
         ApprovalDialog(
@@ -165,7 +185,7 @@ fun ChatScreen(viewModel: YinoViewModel) {
                             strokeWidth = 2.dp,
                         )
                     } else {
-                        Icon(Icons.Filled.Send, null)
+                        Icon(Icons.AutoMirrored.Filled.Send, null)
                     }
                 },
                 enabled = !busy && input.isNotBlank(),
@@ -181,10 +201,15 @@ fun ChatScreen(viewModel: YinoViewModel) {
                     Row(
                         modifier = Modifier.fillMaxWidth()
                             .padding(vertical = YinoSpacing.s)
-                            .clickable {
-                                Toast.makeText(context, "$opt: aún no disponible", Toast.LENGTH_SHORT).show()
-                                showAttach = false
-                            },
+                        .clickable {
+                            when (opt) {
+                                "Cámara" -> cameraLauncher.launch(null)
+                                "Galería" -> galleryLauncher.launch("image/*")
+                                "Documento" -> docLauncher.launch("*/*")
+                                "Audio" -> audioLauncher.launch("audio/*")
+                            }
+                            showAttach = false
+                        },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(androidx.compose.material.icons.Icons.Filled.MoreVert, null, tint = YinoColors.textSecondary)

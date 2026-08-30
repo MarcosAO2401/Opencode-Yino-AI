@@ -22,16 +22,16 @@ class LLMProviderTest {
     }
 
     @Test
-    fun `LLMResult.Text holds content`() {
+    fun `LLMResult Text holds content`() {
         val result = LLMResult.Text("Hello world")
         assertEquals("Hello world", result.content)
     }
 
     @Test
-    fun `LLMResult.ToolCall holds name and arguments`() {
+    fun `LLMResult ToolCall holds name and arguments`() {
         val result = LLMResult.ToolCall("test_tool", """{"key":"value"}""")
         assertEquals("test_tool", result.name)
-        assertEquals("""{"key":"value"}""", result.arguments)
+        assertEquals("""{"key":"value"}""", result.argumentsJson)
     }
 
     @Test

@@ -1,13 +1,17 @@
 package com.yino.ai.data.memory
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class MemoryStore(private val dao: MemoryDao) {
+class MemoryStore(
+    private val dao: MemoryDao,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+) {
     var currentConversationId: Long? = null
 
     suspend fun append(role: String, content: String): Long {
-        return withContext(Dispatchers.IO) {
+        return withContext(dispatcher) {
             val convId = currentConversationId ?: run {
                 val id = dao.insertConversation(
                     ConversationEntity(title = "Chat", createdAt = System.currentTimeMillis())
@@ -28,19 +32,19 @@ class MemoryStore(private val dao: MemoryDao) {
     }
 
     suspend fun history(convId: Long): List<Pair<String, String>> {
-        return withContext(Dispatchers.IO) {
+        return withContext(dispatcher) {
             dao.messages(convId).map { it.role to it.content }
         }
     }
 
     suspend fun listConversations(): List<ConversationEntity> {
-        return withContext(Dispatchers.IO) {
+        return withContext(dispatcher) {
             dao.conversations()
         }
     }
 
     suspend fun clear(convId: Long) {
-        withContext(Dispatchers.IO) {
+        withContext(dispatcher) {
             dao.deleteConversation(convId)
             if (currentConversationId == convId) {
                 currentConversationId = null

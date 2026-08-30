@@ -2,12 +2,23 @@ package com.yino.ai.data.memory
 
 import android.content.Context
 import androidx.room.RoomDatabase
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 
-class MemoryRepository private constructor(private val store: MemoryStore) {
+class MemoryRepository private constructor(
+    private val store: MemoryStore,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+) {
 
-    constructor(context: Context) : this(MemoryStore(MemoryDatabase.getInstance(context).dao()))
+    constructor(context: Context) : this(
+        MemoryStore(MemoryDatabase.getInstance(context).dao(), Dispatchers.IO)
+    )
 
-    constructor(dao: MemoryDao) : this(MemoryStore(dao))
+    constructor(dao: MemoryDao) : this(MemoryStore(dao, Dispatchers.IO))
+
+    internal constructor(dao: MemoryDao, dispatcher: CoroutineDispatcher) : this(
+        MemoryStore(dao, dispatcher)
+    )
 
     suspend fun append(role: String, content: String): Long = store.append(role, content)
 

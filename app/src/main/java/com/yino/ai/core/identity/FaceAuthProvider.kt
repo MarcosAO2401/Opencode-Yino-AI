@@ -1,5 +1,6 @@
 package com.yino.ai.core.identity
 
+import android.content.Context
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
@@ -13,14 +14,19 @@ import kotlin.coroutines.resume
  * Es la vía segura y oficial: no almacena imágenes, no reinventa cripto.
  */
 interface FaceAuthProvider {
-    val isHardwareAvailable: Boolean
+    fun isHardwareAvailable(context: Context): Boolean
     suspend fun verify(activity: FragmentActivity): Boolean
 }
 
 class SystemBiometricFaceAuth : FaceAuthProvider {
 
-    override val isHardwareAvailable: Boolean
-        get() = true
+    override fun isHardwareAvailable(context: Context): Boolean {
+        val bm = BiometricManager.from(context)
+        return bm.canAuthenticate(
+            BiometricManager.Authenticators.BIOMETRIC_STRONG
+                    or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        ) != BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
+    }
 
     override suspend fun verify(activity: FragmentActivity): Boolean =
         suspendCancellableCoroutine { cont ->

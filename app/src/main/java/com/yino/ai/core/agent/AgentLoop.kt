@@ -31,10 +31,16 @@ class AgentLoop(
             ChatMessage(Role.SYSTEM, SYSTEM_PROMPT),
             ChatMessage(Role.USER, userInput),
         )
+        var lastToolMessage: String? = null
 
         repeat(maxSteps) { step ->
             val request = LLMRequest(messages = history, tools = registry.specs())
-            when (val result = llm.complete(request)) {
+            val result = try {
+                llm.complete(request)
+            } catch (e: Exception) {
+                return "Error del LLM: ${e.message ?: e.javaClass.simpleName}"
+            }
+            when (result) {
                 is LLMResult.Text -> {
                     history += ChatMessage(Role.ASSISTANT, result.content)
                     return result.content
@@ -42,7 +48,9 @@ class AgentLoop(
                 is LLMResult.ToolCall -> {
                     val tool = registry.get(result.name)
                     if (tool == null) {
-                        history += ChatMessage(Role.TOOL, "error: herramienta '${result.name}' no existe")
+                        val msg = "error: herramienta '${result.name}' no existe"
+                        history += ChatMessage(Role.TOOL, msg)
+                        lastToolMessage = msg
                         return@repeat
                     }
                     val approved = security.authorize(
@@ -51,7 +59,9 @@ class AgentLoop(
                     )
                     if (!approved) {
                         AuditLog.record(tool.id, tool.risk.name, false, "denegado")
-                        history += ChatMessage(Role.TOOL, "Acción denegada por el usuario: ${tool.id}")
+                        val msg = "Acción denegada por el usuario: ${tool.id}"
+                        history += ChatMessage(Role.TOOL, msg)
+                        lastToolMessage = msg
                         return@repeat
                     }
                     val ctx = ToolContext(accessibilityAvailable(), grantedPermissions())
@@ -73,7 +83,7 @@ class AgentLoop(
                 }
             }
         }
-        return "He completado los pasos disponibles. ¿Quieres que continúe?"
+        return lastToolMessage ?: "He completado los pasos disponibles. ¿Quieres que continúe?"
     }
 
     companion object {
