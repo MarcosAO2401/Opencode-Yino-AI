@@ -30,7 +30,7 @@ class YinoViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            if (com.yino.ai.core.YinoGraph::appContext.isInitialized) {
+            if (YinoGraph.isInitialized) {
                 YinoGraph.security.pendingApprovals.collect { approval ->
                     _pending.value = approval
                 }
@@ -38,7 +38,7 @@ class YinoViewModel : ViewModel() {
         }
         viewModelScope.launch {
             runCatching {
-                if (com.yino.ai.core.YinoGraph::appContext.isInitialized) {
+                if (YinoGraph.isInitialized) {
                     YinoGraph.memory.loadLatest().forEach {
                         _messages.value = _messages.value + ChatMessageUi(it.first, it.second)
                     }

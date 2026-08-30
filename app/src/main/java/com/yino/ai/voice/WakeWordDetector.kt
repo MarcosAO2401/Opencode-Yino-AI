@@ -24,7 +24,7 @@ class WakeWordDetector(
     fun start() {
         if (service != null) return
         val grammar = "[" + phrases.joinToString(",") { "\"$it\"" } + "]"
-        val sampleRate = model.sampleRate.toFloat()
+        val sampleRate = 16000.0f
         val recognizer = Recognizer(model, sampleRate, grammar)
         service = SpeechService(recognizer, sampleRate)
         service?.startListening(object : RecognitionListener {

@@ -36,7 +36,7 @@ class VoskSttProvider(private val context: Context) : STTProvider {
     override fun start() {
         val m = model ?: return
         try {
-            val sampleRate = m.sampleRate.toFloat()
+            val sampleRate = 16000.0f
             val recognizer = Recognizer(m, sampleRate)
             service = SpeechService(recognizer, sampleRate)
             service?.startListening(object : RecognitionListener {

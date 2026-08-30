@@ -38,8 +38,12 @@ import com.yino.ai.core.tools.impl.NotificationReplyTool
 import com.yino.ai.data.memory.MemoryRepository
 
 object YinoGraph {
-    lateinit var appContext: Context
-        private set
+    private var _appContext: Context? = null
+    val appContext: Context
+        get() = _appContext ?: throw IllegalStateException("YinoGraph not initialized. Call init() first.")
+    val isInitialized: Boolean
+        get() = _appContext != null
+
     lateinit var secure: SecureSettings
         private set
     lateinit var llm: LLMProvider
@@ -54,8 +58,8 @@ object YinoGraph {
         private set
 
     fun init(context: Context) {
-        if (::appContext.isInitialized) return
-        appContext = context.applicationContext
+        if (isInitialized) return
+        _appContext = context.applicationContext
         secure = SecureSettings(appContext)
         identity = IdentityGate(
             face = SystemBiometricFaceAuth(),
