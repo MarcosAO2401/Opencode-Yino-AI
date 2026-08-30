@@ -49,11 +49,21 @@ class YinoVoiceService : Service() {
         tts = AndroidTtsProvider(applicationContext)
         vosk = VoskSttProvider(this)
         requestAudioFocus()
+        createNotificationChannel()
         startForeground(NOTIF_ID, buildNotification())
         scope.launch {
             runCatching { vosk.loadModel(YinoGraph.secure.voskModelPath) }
                 .onFailure { /* modelo no disponible: el servicio sigue vivo pero sin voz */ }
-            if (YinoGraph.secure.wakeWordEnabled) startWake()
+            if (YinoGraph.secure.wakeWordEnabled && vosk.isModelLoaded()) startWake()
+        }
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            nm.createNotificationChannel(
+                NotificationChannel("yino_voice", "Yino Voz", NotificationManager.IMPORTANCE_LOW),
+            )
         }
     }
 
@@ -131,12 +141,6 @@ class YinoVoiceService : Service() {
 
     private fun buildNotification(): Notification {
         val channelId = "yino_voice"
-        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            nm.createNotificationChannel(
-                NotificationChannel(channelId, "Yino Voz", NotificationManager.IMPORTANCE_LOW),
-            )
-        }
         val pi = PendingIntent.getActivity(
             this,
             0,

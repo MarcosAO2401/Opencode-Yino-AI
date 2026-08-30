@@ -22,7 +22,9 @@ class AudioRecorder(
     private var recorder: AudioRecord? = null
     private var isRecording = false
     private val bufferSize by lazy {
-        AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat) * 2
+        val size = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+        require(size > 0) { "AudioRecord.getMinBufferSize returned error: $size" }
+        size * 2
     }
 
     /**
@@ -46,7 +48,7 @@ class AudioRecorder(
         CoroutineScope(Dispatchers.IO).launch {
             val floatBuffer = FloatArray(bufferSize / 4)
             while (isRecording && !channel.isClosedForSend) {
-                val read = recorder?.read(floatBuffer, 0, floatBuffer.size, AudioRecord.READ_BLOCKING) ?: 0
+                val read = recorder?.read(floatBuffer, 0, floatBuffer.size, AudioRecord.READ_NON_BLOCKING) ?: 0
                 if (read > 0) {
                     val chunk = FloatArray(read)
                     System.arraycopy(floatBuffer, 0, chunk, 0, read)

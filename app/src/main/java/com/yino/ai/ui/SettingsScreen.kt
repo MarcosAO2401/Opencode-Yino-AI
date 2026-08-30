@@ -223,13 +223,26 @@ fun SettingsScreen(viewModel: YinoViewModel) {
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Button(onClick = {
-                if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
-                    PackageManager.PERMISSION_GRANTED
-                ) {
+                val hasRecordAudio = ContextCompat.checkSelfPermission(
+                    context, Manifest.permission.RECORD_AUDIO
+                ) == PackageManager.PERMISSION_GRANTED
+                val hasMicForeground = if (android.os.Build.VERSION.SDK_INT >= 34) {
+                    ContextCompat.checkSelfPermission(
+                        context, "android.permission.FOREGROUND_SERVICE_MICROPHONE"
+                    ) == PackageManager.PERMISSION_GRANTED
+                } else true
+                if (hasRecordAudio && hasMicForeground) {
                     context.startForegroundService(Intent(context, YinoVoiceService::class.java))
                     listening = true
                 } else {
-                    recordAudioLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    if (!hasRecordAudio) {
+                        recordAudioLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    } else {
+                        // Request FOREGROUND_SERVICE_MICROPHONE via settings intent
+                        val intent = Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                            .setData(android.net.Uri.parse("package:${context.packageName}"))
+                        context.startActivity(intent)
+                    }
                 }
             }) { Text("Activar escucha") }
             Button(onClick = {
@@ -252,7 +265,7 @@ fun SettingsScreen(viewModel: YinoViewModel) {
 private fun copyUriTree(context: Context, treeUri: android.net.Uri, dest: File) {
     dest.mkdirs()
     val tree = DocumentFile.fromTreeUri(context, treeUri) ?: return
-    copyDoc(context, tree, dest)
+    copyDoc(context, tree, dest, 0)
 }
 
 @Composable
@@ -264,12 +277,13 @@ private fun PresetChip(label: String, onClick: () -> Unit) {
     )
 }
 
-private fun copyDoc(context: Context, doc: DocumentFile, dest: File) {
+private fun copyDoc(context: Context, doc: DocumentFile, dest: File, depth: Int) {
+    if (depth > 50) return // Prevent StackOverflow on deep directory trees
     if (doc.isDirectory) {
         dest.mkdirs()
         doc.listFiles().forEach { child ->
             val name = child.name ?: return@forEach
-            copyDoc(context, child, File(dest, name))
+            copyDoc(context, child, File(dest, name), depth + 1)
         }
     } else {
         val name = doc.name ?: return

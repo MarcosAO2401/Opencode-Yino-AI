@@ -24,8 +24,9 @@ class WakeWordDetector(
     fun start() {
         if (service != null) return
         val grammar = "[" + phrases.joinToString(",") { "\"$it\"" } + "]"
-        val recognizer = Recognizer(model, 16000.0f, grammar)
-        service = SpeechService(recognizer, 16000.0f)
+        val sampleRate = model.sampleRate.toFloat()
+        val recognizer = Recognizer(model, sampleRate, grammar)
+        service = SpeechService(recognizer, sampleRate)
         service?.startListening(object : RecognitionListener {
             override fun onResult(hypothesis: String?) {
                 val text = hypothesis?.let { JSONObject(it).optString("text") } ?: ""

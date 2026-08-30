@@ -1,6 +1,7 @@
 package com.yino.ai.voice
 
 import android.content.Context
+import java.io.File
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import org.json.JSONObject
@@ -21,6 +22,7 @@ class VoskSttProvider(private val context: Context) : STTProvider {
     private var pending: ((String) -> Unit)? = null
 
     fun loadModel(modelPath: String): Boolean = try {
+        require(File(modelPath).exists()) { "Modelo no existe: $modelPath" }
         model = Model(modelPath)
         true
     } catch (t: Throwable) {
@@ -34,8 +36,9 @@ class VoskSttProvider(private val context: Context) : STTProvider {
     override fun start() {
         val m = model ?: return
         try {
-            val recognizer = Recognizer(m, 16000.0f)
-            service = SpeechService(recognizer, 16000.0f)
+            val sampleRate = m.sampleRate.toFloat()
+            val recognizer = Recognizer(m, sampleRate)
+            service = SpeechService(recognizer, sampleRate)
             service?.startListening(object : RecognitionListener {
                 override fun onResult(hypothesis: String?) {
                     val text = hypothesis?.let { JSONObject(it).optString("text") } ?: ""
