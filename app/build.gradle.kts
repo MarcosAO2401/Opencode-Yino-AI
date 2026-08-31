@@ -9,13 +9,15 @@ plugins {
 android {
     namespace = "com.yino.ai"
     compileSdk = 34
+
     defaultConfig {
         applicationId = "com.yino.ai"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "1.0"
     }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -42,7 +44,7 @@ android {
     buildFeatures { compose = true }
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/{AL2.0, LGPL2.1}"
         }
     }
     testOptions {
@@ -65,26 +67,22 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-compiler:2.51.1")
-    implementation("io.ktor:ktor-client-okhttp:2.3.13")
-    implementation("io.ktor:ktor-client-content-negotiation:2.3.13")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.13")
-    implementation("androidx.room:room-runtime:2.6.2")
-    kapt("androidx.room:room-compiler:2.6.2")
-    kaptTest("androidx.room:room-compiler:2.6.2")
-    implementation("androidx.room:room-ktx:2.6.2")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("io.ktor:ktor-client-okhttp:2.3.12")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.12")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.biometric:biometric:1.1.0")
-    implementation("androidx.lifecycle:lifecycle-process:2.8.2")
-    implementation("androidx.security:security-crypto:1.1.0-alpha03")
-    implementation("com.alphacephei:vosk-android:0.3.82")
-
+    implementation("androidx.security:security-crypto:1.1.0")
+    implementation("com.alphacephei:vosk-android:0.3.45")
     // JSON Schema validation for tool arguments
-    implementation("com.networknt:json-schema-validator:1.5.6")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.0")
+    implementation("com.networknt:json-schema-validator:1.5.4")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.1")
+    implementation("androidx.biometric:biometric:1.1.0")
 
     // Test dependencies - only coroutines test, no Mockito
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
