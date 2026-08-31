@@ -1,18 +1,10 @@
 <resources>
-    <style name="Theme.YinoAI" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.YinoAI" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryContainer">@color/primaryContainer</item>
-        <item name="colorSecondary">@color/secondary</item>
-        <item name="colorSecondaryContainer">@color/secondaryContainer</item>
-        <item name="colorSurface">@color/surface</item>
-        <item name="colorSurfaceVariant">@color/surfaceVariant</item>
-        <item name="colorBackground">@color/background</item>
-        <item name="colorError">@color/error</item>
-        <item name="colorOnPrimary">@color/onPrimary</item>
-        <item name="colorOnSecondary">@color/onSecondary</item>
-        <item name="colorOnSurface">@color/onSurface</item>
-        <item name="colorOnError">@color/onError</item>
+        <item name="colorPrimaryDark">@color/primary</item>
+        <item name="colorAccent">@color/secondary</item>
         <item name="android:statusBarColor">@color/primaryContainer</item>
         <item name="android:navigationBarColor">@color/background</item>
+        <item name="android:windowBackground">@color/background</item>
     </style>
 </resources>
