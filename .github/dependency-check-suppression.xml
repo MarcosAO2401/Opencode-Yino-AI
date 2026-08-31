@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions>
-  <!-- Example suppression - replace with actual CVEs if needed -->
-  <suppress>
-    <notes>No known suppressions yet - update after first run</notes>
-    <packageUrl>pkg:maven/androidx.core/core-ktx@1.13.1</packageUrl>
-    <cve>CVE-2023-XXXX</cve>
-  </suppress>
+    <!-- Supresiones legítimas para Yino AI -->
+    <!-- Ejemplo: CVE en dependencia de test que no va a producción -->
+    <!-- <suppress>
+        <notes>Solo en test, no en APK final</notes>
+        <packageUrl>pkg:maven/org.robolectric/robolectric@4.12.2</packageUrl>
+        <cve>CVE-XXXX-XXXX</cve>
+    </suppress> -->
 </suppressions>

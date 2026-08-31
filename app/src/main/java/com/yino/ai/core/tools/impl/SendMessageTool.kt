@@ -27,9 +27,9 @@ class SendMessageTool(private val context: Context) : Tool {
     override val id = "send_message"
     override val description =
         "Envía un mensaje a un contacto en una app de mensajería. " +
-            "Parámetros: app (whatsapp|telegram|sms|instagram|facebook|tiktok|...), " +
-            "contact (teléfono o usuario) y message (texto). WhatsApp/Telegram/SMS se envían solos; " +
-            "otras apps se abren para completar con ui_type/ui_click."
+        "Parámetros: app (whatsapp|telegram|sms|instagram|facebook|tiktok|...), " +
+        "contact (teléfono o usuario) y message (texto). WhatsApp/Telegram/SMS se envían solos; " +
+        "otras apps se abren para completar con ui_type/ui_click."
     override val parametersJsonSchema =
         """{"type":"object","properties":{"app":{"type":"string"},"contact":{"type":"string"},"message":{"type":"string"}},"required":["app","contact","message"]}"""
     override val risk = ActionRisk.HIGH
@@ -58,8 +58,13 @@ class SendMessageTool(private val context: Context) : Tool {
 
     private fun sendWhatsApp(contact: String, msg: String): ToolResult {
         val phone = contact.filter { it.isDigit() }
-        if (phone.isEmpty()) return ToolResult(false, "WhatsApp requiere un número de teléfono en contact")
-        val uri = Uri.parse("https://wa.me/$phone?text=${Uri.encode(msg)}")
+        if (phone.length < 8 || phone.length > 15) {
+            return ToolResult(false, "WhatsApp requiere un número de teléfono válido (8-15 dígitos)")
+        }
+        val cleanMsg = msg.take(4096).replace(Regex("[\\p{Cntrl}&&[^\n\r\t]]"), "")
+        val uri = Uri.parse("https://wa.me/$phone").buildUpon()
+            .appendQueryParameter("text", cleanMsg)
+            .build()
         context.startActivity(
             Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
@@ -78,8 +83,15 @@ class SendMessageTool(private val context: Context) : Tool {
 
     private fun sendTelegram(contact: String, msg: String): ToolResult {
         val handle = contact.trim().removePrefix("@")
-        val target = if (handle.any { it.isDigit() }) handle else "@$handle"
-        val uri = Uri.parse("tg://msg?to=$target&text=${Uri.encode(msg)}")
+        if (!handle.matches(Regex("^[a-zA-Z0-9_]{5,32}$")) && !handle.all { it.isDigit() }) {
+            return ToolResult(false, "Usuario de Telegram inválido (@usuario o número)")
+        }
+        val target = if (handle.all { it.isDigit() }) handle else "@$handle"
+        val cleanMsg = msg.take(4096).replace(Regex("[\\p{Cntrl}&&[^\n\r\t]]"), "")
+        val uri = Uri.parse("tg://msg").buildUpon()
+            .appendQueryParameter("to", target)
+            .appendQueryParameter("text", cleanMsg)
+            .build()
         context.startActivity(
             Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
@@ -99,8 +111,13 @@ class SendMessageTool(private val context: Context) : Tool {
 
     private fun sendSms(contact: String, msg: String): ToolResult {
         val phone = contact.filter { it.isDigit() }
-        if (phone.isEmpty()) return ToolResult(false, "SMS requiere un número en contact")
-        val uri = Uri.parse("sms:$phone?body=${Uri.encode(msg)}")
+        if (phone.length < 8 || phone.length > 15) {
+            return ToolResult(false, "SMS requiere un número de teléfono válido (8-15 dígitos)")
+        }
+        val cleanMsg = msg.take(1600).replace(Regex("[\\p{Cntrl}&&[^\n\r\t]]"), "")
+        val uri = Uri.parse("sms:$phone").buildUpon()
+            .appendQueryParameter("body", cleanMsg)
+            .build()
         context.startActivity(
             Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
@@ -144,7 +161,7 @@ class SendMessageTool(private val context: Context) : Tool {
             return ToolResult(
                 true,
                 "Abrí $app. Para terminar: usa ui_type para buscar a '$contact', ui_click para abrir el chat, " +
-                    "ui_type con \"$msg\" y ui_click en Enviar. (Tip: si hay una notificación reciente de ese chat, usa reply_notification.)",
+                "ui_type con \"$msg\" y ui_click en Enviar. (Tip: si hay una notificación reciente de ese chat, usa reply_notification.)",
             )
         }
         return ToolResult(false, "No encontré la app '$app' instalada")
@@ -160,7 +177,7 @@ class SendMessageTool(private val context: Context) : Tool {
                 return ToolResult(
                     true,
                     "Abrí $app. Para terminar: usa ui_type para escribir a '$contact' y ui_click en su chat, " +
-                        "luego ui_type con \"$msg\" y ui_click en Enviar.",
+                    "luego ui_type con \"$msg\" y ui_click en Enviar.",
                 )
             }
         }

@@ -15,10 +15,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /**
- * Proveedor on-device OpenAI-compatible. Habla con un SERVIDOR DE INFERENCIA
+ * Proveedor on-device OpenAI-compatible.
+ * Habla con un SERVIDOR DE INFERENCIA
  * LOCAL que exponga la API de OpenAI, p. ej.:
- *  - Ollama en Termux: http://127.0.0.1:11434/v1/chat/completions
- *  - llama.cpp en modo servidor OpenAI: http://127.0.0.1:8080/v1/chat/completions
+ * - Ollama en Termux: http://127.0.0.1:11434/v1/chat/completions
+ * - llama.cpp en modo servidor OpenAI: http://127.0.0.1:8080/v1/chat/completions
  *
  * Al ser OpenAI-compatible, SOPORTA tool_calls: el agente ReAct puede ejecutar
  * acciones (tocar la pantalla, enviar mensajes) 100% en el dispositivo.
@@ -72,7 +73,6 @@ class LocalLLMProvider(
         return try {
             val resp: Resp = client.post(baseUrl) {
                 contentType(ContentType.Application.Json)
-                header("Authorization", "Bearer ")
                 setBody(body)
             }.body()
             val choice = resp.choices.firstOrNull()

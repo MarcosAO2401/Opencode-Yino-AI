@@ -23,9 +23,17 @@ class SecureSettings(context: Context) {
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
         )
-    }.getOrElse {
-        // Fallback sin cifrado (solo debug)
-        context.getSharedPreferences("yino_secure_fallback", Context.MODE_PRIVATE)
+    }.getOrElse { error ->
+        // Fail-hard: si no hay cifrado, NO guardamos secretos en claro.
+        // Log de auditoría para diagnóstico.
+        android.util.Log.e("YinoAI",
+            "EncryptedSharedPreferences falló: ${error.message}. " +
+            "Dispositivo sin TEE/Keystore compatible. Configuración segura deshabilitada."
+        )
+        throw SecurityException(
+            "EncryptedSharedPreferences no disponible en este dispositivo. " +
+            "La app requiere Android 6.0+ con hardware-backed Keystore para almacenar secretos de forma segura."
+        )
     }
 
     var apiKey: String
@@ -88,13 +96,12 @@ class SecureSettings(context: Context) {
         private const val KEY_WAKE = "wake_word_enabled"
         private const val KEY_REQUIRE_FACE = "require_face"
         private const val KEY_REQUIRE_VOICE = "require_voice"
-        const val DEFAULT_VOSK =
-            "/storage/emulated/0/Android/data/com.yino.ai/files/vosk-model-small-es-0.42"
+
+        const val DEFAULT_VOSK = "/storage/emulated/0/Android/data/com.yino.ai/files/vosk-model-small-es-0.42"
         const val DEFAULT_URL = "https://api.openai.com/v1/chat/completions"
         const val DEFAULT_MODEL = "gpt-4o-mini"
         const val DEFAULT_LOCAL_MODEL = "llama3"
         const val DEFAULT_LOCAL_URL = "http://127.0.0.1:11434/v1/chat/completions"
-        const val DEFAULT_LOCAL_MODEL_PATH =
-            "/storage/emulated/0/Android/data/com.yino.ai/files/gguf-model.gguf"
+        const val DEFAULT_LOCAL_MODEL_PATH = "/storage/emulated/0/Android/data/com.yino.ai/files/gguf-model.gguf"
     }
 }
