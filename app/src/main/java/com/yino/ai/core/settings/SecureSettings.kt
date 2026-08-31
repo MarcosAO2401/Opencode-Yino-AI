@@ -4,36 +4,29 @@ import android.content.Context
 import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import java.io.File
-import java.io.FileWriter
 
 class SecureSettings(context: Context) {
 
-    private val prefs = runCatching {
-        val masterKey = MasterKey.Builder(context.applicationContext)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-        EncryptedSharedPreferences.create(
-            context.applicationContext,
-            "yino_secure",
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-        )
-    }.getOrElse { error ->
-        val msg = "EncryptedSharedPreferences falló: ${error.message}. Usando fallback SIN CIFRAR."
-        Log.w("YinoAI", msg)
-        writeCrashLog("SecureSettings", msg)
-        val fallback = context.getSharedPreferences("yino_secure_fallback", Context.MODE_PRIVATE)
-        fallback.edit().putBoolean("encryption_failed", true).apply()
-        fallback
-    }
+    private val appContext = context.applicationContext
 
-    private fun writeCrashLog(tag: String, msg: String) {
-        try {
-            val file = File(context.cacheDir, "yino_crash.log")
-            FileWriter(file, true).use { it.write("${java.time.Instant.now()} [$tag] $msg\n") }
-        } catch (e: Exception) { /* ignore */ }
+    private val prefs by lazy {
+        runCatching {
+            val masterKey = MasterKey.Builder(appContext)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+            EncryptedSharedPreferences.create(
+                appContext,
+                "yino_secure",
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+            )
+        }.getOrElse { error ->
+            Log.w("YinoAI", "EncryptedSharedPreferences fallo: ${error.message}. Fallback SIN CIFRAR.")
+            val fallback = appContext.getSharedPreferences("yino_secure_fallback", Context.MODE_PRIVATE)
+            fallback.edit().putBoolean("encryption_failed", true).apply()
+            fallback
+        }
     }
 
     val isEncryptionCompromised: Boolean
