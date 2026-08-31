@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Yino AI</string>
+    <string name="accessibility_description">Yino AI - Asistente personal. Lee la pantalla y automatiza acciones por voz.</string>
 </resources>
