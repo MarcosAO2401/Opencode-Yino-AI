@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Yino AI</string>
-    <string name="accessibility_description">Yino AI usa accesibilidad para leer la pantalla y ejecutar acciones por ti. Requiere tu consentimiento explícito.</string>
 </resources>

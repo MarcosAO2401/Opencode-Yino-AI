@@ -1,13 +1,12 @@
 package com.yino.ai
 
 import android.app.Application
-import com.yino.ai.core.YinoGraph
-import dagger.hilt.android.HiltAndroidApp
+import com.google.dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class YinoApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        YinoGraph.init(this)
+        // NO inicializar YinoGraph aquí - se hace en MainActivity tras UI lista
     }
 }

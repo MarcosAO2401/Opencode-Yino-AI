@@ -1,15 +1,12 @@
 package com.yino.ai.core.settings
 
 import android.content.Context
+import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import java.io.File
+import java.io.FileWriter
 
-/**
- * Almacenamiento seguro de configuración sensible (p. ej. la API key del LLM).
- * Usa EncryptedSharedPreferences (AES256-GCM vía AndroidKeyStore + Tink): la
- * key nunca queda en claro en disco. Es la forma oficial de guardar secretos
- * en Android sin un backend.
- */
 class SecureSettings(context: Context) {
 
     private val prefs = runCatching {
@@ -24,17 +21,23 @@ class SecureSettings(context: Context) {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
         )
     }.getOrElse { error ->
-        // Fail-hard: si no hay cifrado, NO guardamos secretos en claro.
-        // Log de auditoría para diagnóstico.
-        android.util.Log.e("YinoAI",
-            "EncryptedSharedPreferences falló: ${error.message}. " +
-            "Dispositivo sin TEE/Keystore compatible. Configuración segura deshabilitada."
-        )
-        throw SecurityException(
-            "EncryptedSharedPreferences no disponible en este dispositivo. " +
-            "La app requiere Android 6.0+ con hardware-backed Keystore para almacenar secretos de forma segura."
-        )
+        val msg = "EncryptedSharedPreferences falló: ${error.message}. Usando fallback SIN CIFRAR."
+        Log.w("YinoAI", msg)
+        writeCrashLog("SecureSettings", msg)
+        val fallback = context.getSharedPreferences("yino_secure_fallback", Context.MODE_PRIVATE)
+        fallback.edit().putBoolean("encryption_failed", true).apply()
+        fallback
     }
+
+    private fun writeCrashLog(tag: String, msg: String) {
+        try {
+            val file = File(context.cacheDir, "yino_crash.log")
+            FileWriter(file, true).use { it.write("${java.time.Instant.now()} [$tag] $msg\n") }
+        } catch (e: Exception) { /* ignore */ }
+    }
+
+    val isEncryptionCompromised: Boolean
+        get() = prefs.getBoolean("encryption_failed", false)
 
     var apiKey: String
         get() = prefs.getString(KEY_API, "") ?: ""
