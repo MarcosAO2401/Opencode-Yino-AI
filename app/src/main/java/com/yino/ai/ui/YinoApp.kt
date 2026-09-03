@@ -68,8 +68,11 @@ import kotlinx.coroutines.launch
 sealed class YinoDestination(
     val route: String,
     val label: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    private val _icon: androidx.compose.ui.graphics.vector.ImageVector?,
 ) {
+    val icon: androidx.compose.ui.graphics.vector.ImageVector
+        get() = _icon ?: Icons.Filled.Face // Fallback seguro
+
     data object Chat : YinoDestination("chat", "Chat", Icons.AutoMirrored.Filled.Chat)
     data object Voice : YinoDestination("voice", "Voz", Icons.Filled.Mic)
     data object Automation :
@@ -111,6 +114,7 @@ fun YinoApp() {
                 Text("Yino AI", color = YinoColors.textPrimary, fontSize = 20.sp)
                 Spacer(Modifier.size(YinoSpacing.l))
                 YinoDestination.entries.forEach { dest ->
+                    if (dest == null) return@forEach
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -163,7 +167,7 @@ fun YinoApp() {
             },
             bottomBar = {
                 NavigationBar {
-                    main.forEach { dest ->
+                    main.filterNotNull().forEach { dest ->
                         val selected = currentRoute == dest.route
                         NavigationBarItem(
                             selected = selected,
@@ -172,7 +176,7 @@ fun YinoApp() {
                             label = { Text(dest.label, color = if (selected) YinoColors.accentSecondary else YinoColors.textTertiary) },
                         )
                     }
-                    val moreSelected = more.any { it.route == currentRoute }
+                    val moreSelected = more.filterNotNull().any { it.route == currentRoute }
                     NavigationBarItem(
                         selected = moreSelected,
                         onClick = { showMore = true },
@@ -214,7 +218,7 @@ fun YinoApp() {
             Column(Modifier.fillMaxWidth().padding(YinoSpacing.l)) {
                 Text("Más", color = YinoColors.textPrimary, fontSize = 18.sp)
                 Spacer(Modifier.size(YinoSpacing.s))
-                more.forEach { dest ->
+                more.filterNotNull().forEach { dest ->
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(vertical = YinoSpacing.s)
                             .clickable { navigateTo(dest, navController); showMore = false },
@@ -234,7 +238,7 @@ fun YinoApp() {
             Column(Modifier.fillMaxWidth().padding(YinoSpacing.l)) {
                 Text("Acciones rápidas", color = YinoColors.textPrimary, fontSize = 18.sp)
                 Spacer(Modifier.size(YinoSpacing.s))
-                listOf(YinoDestination.Chat, YinoDestination.Voice, YinoDestination.Automation, YinoDestination.Apps).forEach { dest ->
+                listOf(YinoDestination.Chat, YinoDestination.Voice, YinoDestination.Automation, YinoDestination.Apps).filterNotNull().forEach { dest ->
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(vertical = YinoSpacing.s)
                             .clickable { navigateTo(dest, navController); showQuick = false },
