@@ -92,8 +92,8 @@ class SecureSettings(context: Context) {
         private const val KEY_REQUIRE_VOICE = "require_voice"
 
         const val DEFAULT_VOSK = "/storage/emulated/0/Download/YinoAI/vosk-model"
-        const val DEFAULT_URL = "https://api.openai.com/v1/chat/completions"
-        const val DEFAULT_MODEL = "gpt-4o-mini"
+        const val DEFAULT_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
+        const val DEFAULT_MODEL = "nvidia/nemotron-3.5-lightning-30b-a3b"
         const val DEFAULT_LOCAL_MODEL = "llama3"
         const val DEFAULT_LOCAL_URL = "http://192.168.1.123:11434/v1/chat/completions"
         const val DEFAULT_LOCAL_MODEL_PATH = "/storage/emulated/0/Download/YinoAI/gguf-model.gguf"
