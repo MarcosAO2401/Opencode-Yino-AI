@@ -14,6 +14,7 @@ class AndroidTtsProvider(context: Context) : TTSProvider {
         tts = TextToSpeech(context.applicationContext) { status ->
             if (status == TextToSpeech.SUCCESS) {
                 tts?.language = Locale.getDefault()
+                tts?.setPitch(0.7f) // Tono más grave
                 ready = true
             }
         }
