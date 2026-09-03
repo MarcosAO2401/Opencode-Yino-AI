@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yino.ai.core.YinoGraph
 import com.yino.ai.core.security.SecurityGate
-import com.yino.ai.core.tools.ToolSpec
+import com.yino.ai.core.llm.ToolSpec
 import com.yino.ai.core.tools.ToolContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
