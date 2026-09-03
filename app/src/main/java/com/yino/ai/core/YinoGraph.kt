@@ -35,12 +35,25 @@ import com.yino.ai.core.tools.impl.UiTypeTool
 import com.yino.ai.core.tools.impl.UiWaitTool
 import com.yino.ai.core.tools.impl.WebSearchTool
 import com.yino.ai.core.tools.impl.NotificationReplyTool
+import com.yino.ai.data.memory.MemoryRepository
 import com.yino.ai.voice.AndroidTtsProvider
 import com.yino.ai.voice.TTSProvider
-// ... existing imports ...
 
 object YinoGraph {
-    // ...
+    private var _appContext: Context? = null
+    val appContext: Context
+        get() = _appContext ?: throw IllegalStateException("YinoGraph not initialized. Call init() first.")
+    val isInitialized: Boolean
+        get() = _appContext != null
+
+    lateinit var secure: SecureSettings
+        private set
+    lateinit var llm: LLMProvider
+        private set
+    val registry: ToolRegistry = ToolRegistry()
+    val security: SecurityGate = SecurityGate()
+    lateinit var identity: IdentityGate
+        private set
     lateinit var memory: MemoryRepository
         private set
     lateinit var tts: TTSProvider
@@ -63,8 +76,8 @@ object YinoGraph {
         registerTools()
         rebuildLlm()
     }
-// ...
 
+    private fun registerTools() {
         registry.register(OpenAppTool(appContext))
         registry.register(SendMessageTool(appContext))
         registry.register(WebSearchTool(appContext))
