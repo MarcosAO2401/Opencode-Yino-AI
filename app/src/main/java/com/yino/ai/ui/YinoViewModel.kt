@@ -42,6 +42,31 @@ class YinoViewModel : ViewModel() {
                     YinoGraph.memory.loadLatest().forEach {
                         _messages.value = _messages.value + ChatMessageUi(it.first, it.second)
                     }
+                    // Jarvis: Saludo proactivo + Clima
+                    val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+                    val greeting = when (hour) {
+                        in 5..11 -> "Buenos días, Señor."
+                        in 12..19 -> "Buenas tardes, Señor."
+                        else -> "Buenas noches, Señor."
+                    }
+                    
+                    // Intentar obtener clima
+                    val weather = try {
+                        val weatherRequest = com.yino.ai.core.llm.LLMRequest(
+                            messages = listOf(com.yino.ai.core.llm.ChatMessage(com.yino.ai.core.llm.Role.USER, "Obtén el clima brevemente")),
+                            tools = listOf(com.yino.ai.core.tools.ToolSpec("web_search", "Busca clima", "{}"))
+                        )
+                        // Ejecutar búsqueda rápida a través del agente o herramienta
+                        val res = YinoGraph.registry.execute("web_search", "{\"query\": \"clima actual\"}", com.yino.ai.core.tools.ToolContext(true, emptySet()))
+                        res.message
+                    } catch (e: Exception) {
+                        "no pude obtener el clima actualmente"
+                    }
+                    
+                    _messages.value = _messages.value + ChatMessageUi("assistant", "$greeting El clima está: $weather. ¿En qué puedo serle útil hoy?")
+                    
+                    // Jarvis habla
+                    YinoGraph.tts.speak("$greeting El clima está: $weather. ¿En qué puedo serle útil hoy?")
                 }
             }
         }
