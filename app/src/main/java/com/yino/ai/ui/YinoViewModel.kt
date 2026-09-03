@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yino.ai.core.YinoGraph
 import com.yino.ai.core.security.SecurityGate
+import com.yino.ai.core.tools.ToolSpec
+import com.yino.ai.core.tools.ToolContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,10 +56,10 @@ class YinoViewModel : ViewModel() {
                     val weather = try {
                         val weatherRequest = com.yino.ai.core.llm.LLMRequest(
                             messages = listOf(com.yino.ai.core.llm.ChatMessage(com.yino.ai.core.llm.Role.USER, "Obtén el clima brevemente")),
-                            tools = listOf(com.yino.ai.core.tools.ToolSpec("web_search", "Busca clima", "{}"))
+                            tools = listOf(ToolSpec("web_search", "Busca clima", "{}"))
                         )
                         // Ejecutar búsqueda rápida a través del agente o herramienta
-                        val res = YinoGraph.registry.execute("web_search", "{\"query\": \"clima actual\"}", com.yino.ai.core.tools.ToolContext(true, emptySet()))
+                        val res = YinoGraph.registry.execute("web_search", "{\"query\": \"clima actual\"}", ToolContext(true, emptySet()))
                         res.message
                     } catch (e: Exception) {
                         "no pude obtener el clima actualmente"

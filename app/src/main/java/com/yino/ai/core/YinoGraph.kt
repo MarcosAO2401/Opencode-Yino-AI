@@ -105,8 +105,8 @@ object YinoGraph {
     private fun rebuildLlm() {
         llm = if (secure.useLocalLlm) {
             LocalLLMProvider(
-                secureSettings = secure,
-                model = secure.localModelName.ifBlank { SecureSettings.DEFAULT_LOCAL_MODEL },
+                secure,
+                secure.localModelName.ifBlank { SecureSettings.DEFAULT_LOCAL_MODEL }
             )
         } else {
             CloudLLMProvider(
