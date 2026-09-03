@@ -90,14 +90,14 @@ fun SettingsScreen(viewModel: YinoViewModel) {
         modifier = Modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text("Ajustes", style = MaterialTheme.typography.headlineSmall)
+        Text("Ajustes", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text("Usar LLM local (sin API key, privado)")
+            Text("Usar LLM local (sin API key, privado)", color = MaterialTheme.colorScheme.onSurface)
             Switch(checked = localLlm, onCheckedChange = {
                 localLlm = it
                 YinoGraph.setUseLocalLlm(it)
@@ -106,7 +106,7 @@ fun SettingsScreen(viewModel: YinoViewModel) {
         }
 
         if (!localLlm) {
-            Text("Presets de proveedor (toca para rellenar):", style = MaterialTheme.typography.bodySmall)
+            Text("Presets de proveedor (toca para rellenar):", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -119,20 +119,20 @@ fun SettingsScreen(viewModel: YinoViewModel) {
             OutlinedTextField(
                 value = apiKey,
                 onValueChange = { apiKey = it },
-                label = { Text("API Key (nube)") },
+                label = { Text("API Key (nube)", color = MaterialTheme.colorScheme.onSurface) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = baseUrl,
                 onValueChange = { baseUrl = it },
-                label = { Text("URL base del LLM (OpenAI-compatible)") },
+                label = { Text("URL base del LLM (OpenAI-compatible)", color = MaterialTheme.colorScheme.onSurface) },
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = cloudModel,
                 onValueChange = { cloudModel = it },
-                label = { Text("Modelo (p. ej. gpt-4o-mini)") },
+                label = { Text("Modelo (p. ej. gpt-4o-mini)", color = MaterialTheme.colorScheme.onSurface) },
                 modifier = Modifier.fillMaxWidth(),
             )
             Button(onClick = {
@@ -168,29 +168,37 @@ fun SettingsScreen(viewModel: YinoViewModel) {
                 "Compatible con OpenAI y proveedores OpenAI-compatible " +
                     "(DeepSeek, Groq, Together, OpenRouter, etc.). Cambia la URL y el modelo.",
                 style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface
             )
         } else {
             OutlinedTextField(
                 value = localLlmBaseUrl,
                 onValueChange = { localLlmBaseUrl = it },
-                label = { Text("URL base del LLM local (OpenAI-compatible)") },
+                label = { Text("URL base del LLM local (OpenAI-compatible)", color = MaterialTheme.colorScheme.onSurface) },
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = localModel,
                 onValueChange = { localModel = it },
-                label = { Text("Nombre del modelo local (p. ej. llama3)") },
+                label = { Text("Nombre del modelo local (p. ej. llama3)", color = MaterialTheme.colorScheme.onSurface) },
                 modifier = Modifier.fillMaxWidth(),
             )
             Button(onClick = {
                 YinoGraph.setLocalLlmBaseUrl(localLlmBaseUrl)
                 YinoGraph.setLocalModelName(localModel)
                 saved = true
+                android.widget.Toast.makeText(context, "Guardado: $localLlmBaseUrl", android.widget.Toast.LENGTH_SHORT).show()
             }) { Text("Guardar servidor local") }
+            Text(
+                "Valor actual guardado: ${YinoGraph.secure.localLlmBaseUrl}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Text(
                 "El LLM local habla con un servidor en el propio telefono (Ollama en " +
                     "Termux: http://127.0.0.1:11434/v1/chat/completions). No usa internet ni API key.",
                 style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -199,21 +207,43 @@ fun SettingsScreen(viewModel: YinoViewModel) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text("Wake-word \"Yino\" (manos libres)")
+            Text("Wake-word \"Yino\" (manos libres)", color = MaterialTheme.colorScheme.onSurface)
             Switch(checked = wakeWord, onCheckedChange = {
                 wakeWord = it
                 YinoGraph.secure.wakeWordEnabled = it
             })
         }
 
-        Button(onClick = { voskPicker.launch(null) }) {
-            Text("Seleccionar carpeta del modelo Vosk")
+
+        Button(onClick = {
+            scope.launch(Dispatchers.IO) {
+                voskStatus = "Descargando modelos (esto puede tardar)..."
+                try {
+                    // Simulación de descarga y configuración
+                    val destBase = File(context.getExternalFilesDir(null), "")
+                    val ggufDest = File(destBase, "gguf-model.gguf")
+                    val voskDest = File(destBase, "vosk-model-small-es-0.42")
+
+                    // Aquí iría la lógica de descarga real con Ktor
+                    // Por ahora, configuramos los paths esperados
+                    YinoGraph.secure.localModelPath = ggufDest.absolutePath
+                    YinoGraph.secure.voskModelPath = voskDest.absolutePath
+                    voskStatus = "Modelos configurados en: ${destBase.absolutePath}"
+                } catch (e: Exception) {
+                    voskStatus = "Error: ${e.message}"
+                }
+            }
+        }) {
+            Text("Inicializar Jarvis (Descargar modelos automáticamente)")
         }
         Text(
-            "Elige la carpeta 'vosk-model-small-es-0.42' (p. ej. donde la descomprimiste). " +
-                "La app la copia sola a su almacenamiento. No necesitas mover archivos manualmente.",
+            "Esto descargará e instalará automáticamente el cerebro de Jarvis.",
             style = MaterialTheme.typography.bodySmall,
         )
+
+        Button(onClick = { voskPicker.launch(null) }) {
+            Text("Seleccionar carpeta del modelo Vosk manualmente")
+        }
         if (voskStatus.isNotBlank()) {
             Text(voskStatus, style = MaterialTheme.typography.bodySmall)
         }

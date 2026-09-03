@@ -107,7 +107,7 @@ class CloudLLMProvider(
                 )
                 val response: Resp = client.post(baseUrl) {
                     contentType(ContentType.Application.Json)
-                    header("Authorization", "Bearer $apiKey")
+                    header("Authorization", "Bearer ${apiKey.trim()}")
                     setBody(body)
                 }.body()
                 val choice = response.choices.firstOrNull() ?: return LLMResult.Text("(sin respuesta del LLM)")
