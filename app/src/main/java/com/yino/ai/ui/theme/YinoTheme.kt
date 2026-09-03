@@ -35,19 +35,20 @@ val YinoBrand = FontFamily(Font(R.font.orbitron))
 val YinoText = FontFamily.Default
 
 object YinoColors {
-    val backgroundPrimary = Color(0xFF05080D)
-    val backgroundSecondary = Color(0xFF08111C)
-    val surface = Color(0xFF0B1622)
-    val surfaceElevated = Color(0xFF101D2B)
-    val accentPrimary = Color(0xFF2196F3)
-    val accentSecondary = Color(0xFF38A9FF)
+    val backgroundPrimary = Color(0xFF000305) // Negro carbón profundo
+    val backgroundSecondary = Color(0xFF020508)
+    val surface = Color(0xFF04080D)
+    val surfaceElevated = Color(0xFF060C14)
+    val accentPrimary = Color(0xFF00E5FF) // Cyan eléctrico intenso
+    val accentSecondary = Color(0xFF0055FF) // Azul profundo intenso
+    val accentNeon = Color(0xFF00FFE0) // Neon cian para procesamiento
     val border = Color(0xFF1B3A52)
-    val textPrimary = Color(0xFFEAF2F8)
-    val textSecondary = Color(0xFF9AA9B8)
-    val textTertiary = Color(0xFF667788)
-    val error = Color(0xFFE5484D)
-    val success = Color(0xFF3DDC84)
-    val warning = Color(0xFFFFB020)
+    val textPrimary = Color(0xFFE0F7FA) // Blanco azulado
+    val textSecondary = Color(0xFF819CA9)
+    val textTertiary = Color(0xFF455A64)
+    val error = Color(0xFFFF5252)
+    val success = Color(0xFF00E676)
+    val warning = Color(0xFFFFC400)
 }
 
 object YinoSpacing {

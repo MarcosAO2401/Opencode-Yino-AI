@@ -1,0 +1,518 @@
+{
+  "app/build.gradle.kts": {
+    "mtime": 1788202860.7424166,
+    "seen": 1788268509.5907917,
+    "ast_hash": "f06d8131d2febd1227ff35c5e1e608e3",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/MainActivity.kt": {
+    "mtime": 1788207452.462415,
+    "seen": 1788268509.590802,
+    "ast_hash": "0da5e8bc8d1402a5f37c5be30440da34",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/SettingsActivity.kt": {
+    "mtime": 1788202847.7064166,
+    "seen": 1788268509.5908058,
+    "ast_hash": "383585302f7adf6e7b1ea07669cb7854",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/YinoApplication.kt": {
+    "mtime": 1788201695.542417,
+    "seen": 1788268509.5908082,
+    "ast_hash": "210c92960a94970150f8519c43a95baf",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/automation/ActionExecutor.kt": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.5908108,
+    "ast_hash": "e5f43ce10f85931dae880ad89423396a",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/automation/UiAction.kt": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.590813,
+    "ast_hash": "2f1e327e31233c28e59176c07686e075",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/automation/YinoAccessibilityService.kt": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.5908158,
+    "ast_hash": "9252a6777607b8f22520a8108321da18",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/automation/YinoNotificationListener.kt": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.5908184,
+    "ast_hash": "759ea771ad43c4f3fbba98b9607a9801",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/YinoGraph.kt": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.5908206,
+    "ast_hash": "a2960522aa26734d0477bce14dab682f",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/agent/AgentLoop.kt": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.5908225,
+    "ast_hash": "aca7bb58aa92c462f23fd5b32c5d88e4",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/identity/FaceAuthProvider.kt": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.5908246,
+    "ast_hash": "d7993c052c5904b81350e8385128ecc2",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/identity/IdentityGate.kt": {
+    "mtime": 1788178769.89874,
+    "seen": 1788268509.5908265,
+    "ast_hash": "6c434b1bb9e3e8f283b2757245533778",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/identity/VoiceAuthProvider.kt": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.590829,
+    "ast_hash": "f6768ccaf2ad110d20fc89e0c203ffbc",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/identity/VoskPassphraseAuth.kt": {
+    "mtime": 1788198232.4384184,
+    "seen": 1788268509.5908306,
+    "ast_hash": "54d1f8d34b0dc28b4b424ab9dec6d45c",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/identity/VoskPassphraseVoiceAuth.kt": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.5908325,
+    "ast_hash": "24f3c09de3dbedfcbac6b5d48b6e1517",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/llm/CloudLLMProvider.kt": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.590834,
+    "ast_hash": "4bdf240dad613307a30de44abaf4e665",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/llm/LLMProvider.kt": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.590836,
+    "ast_hash": "3afce08885f45a6ec7237ae57dc3ffb1",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/llm/LocalLLMProvider.kt": {
+    "mtime": 1788198232.4424186,
+    "seen": 1788268509.5908384,
+    "ast_hash": "3d9ed43d1be6eb1f0234246c4ae7ae3c",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/security/AuditLog.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908408,
+    "ast_hash": "57ce2013396f0db3ac2fa75428c929ee",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/security/SecurityGate.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908427,
+    "ast_hash": "74b09bdd245d465d2794e031fc048659",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/settings/SecureSettings.kt": {
+    "mtime": 1788198232.4424186,
+    "seen": 1788268509.5908444,
+    "ast_hash": "01ef0660d8a3d924ec1225e1a24f3769",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/Tool.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.590846,
+    "ast_hash": "f7028731f9652396a82952d4fa8ba103",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/ToolRegistry.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908477,
+    "ast_hash": "e58b98fef2e5719a1affd1e759af266c",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/BackTool.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908496,
+    "ast_hash": "d074afd19626e86c459b6436d61205c4",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/CallTool.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908513,
+    "ast_hash": "b804195b35c8c0948dfbe232e9916445",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/ContactsHelper.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908535,
+    "ast_hash": "812486e7e6672880dce8ce6d19469358",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/GoHomeTool.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908551,
+    "ast_hash": "3880d04a7df5208c64bcc7ac358f1563",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/NotificationReplyTool.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908573,
+    "ast_hash": "f0d0a5dd1edad9e0e1fb5cb35d6a024a",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/OpenAppTool.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908587,
+    "ast_hash": "09dcc920bc003be91b1f6a4598145bdb",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/PlayMusicTool.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908606,
+    "ast_hash": "b831fee161a8b7e9df82210ce0cced0c",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/ReadNotificationsTool.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.590862,
+    "ast_hash": "0c8cfab6ce382a98f87a16b356f616f6",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/ReadScreenTool.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.590864,
+    "ast_hash": "c7dd6e9611c95bf5b23140c6dabbdac8",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/ScrollTool.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908654,
+    "ast_hash": "6fb668ccb163e51e945dc88481f3e413",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/SendEmailTool.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908675,
+    "ast_hash": "f74ca2342b5156dd77bc7f60c4dd9de9",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/SendMessageTool.kt": {
+    "mtime": 1788198232.4464185,
+    "seen": 1788268509.5908692,
+    "ast_hash": "991cb8e9b3653e0f088ea26350f17029",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/SystemTools.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.590871,
+    "ast_hash": "a737da69be79100bf388dd16d90c8ef7",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/TapTool.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908728,
+    "ast_hash": "52d0698080ec10e98f9ab6276e0476bb",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/UiControlTools.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908747,
+    "ast_hash": "495f106ab887faae9e178ad657fa7a5c",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/tools/impl/WebSearchTool.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908766,
+    "ast_hash": "0661f99b0d7bec778cb33258be3a03a8",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/core/vision/ScreenUnderstandingEngine.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908785,
+    "ast_hash": "037e09ee85879abb5a3ce5fbc0dd96d5",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/data/memory/ConversationEntity.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.59088,
+    "ast_hash": "4fd0f946c54ea3785390138f309c99fb",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/data/memory/MemoryDao.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908813,
+    "ast_hash": "c76bdc42525041e8069f9f23e79be885",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/data/memory/MemoryDatabase.kt": {
+    "mtime": 1788198232.4464185,
+    "seen": 1788268509.5908833,
+    "ast_hash": "9ba1f3e90689237b66181408b18b5a99",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/data/memory/MemoryRepository.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.590886,
+    "ast_hash": "05baf0acd8957a80ee745f4a51da7de8",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/data/memory/MemoryStore.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908883,
+    "ast_hash": "e129e27fd16c9381645d855a0089cccd",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/data/memory/MessageEntity.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908897,
+    "ast_hash": "88d5c3f1a0ac8c2a0e3006e45e31f34a",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/data/memory/Migrations.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908916,
+    "ast_hash": "969602476b4bb37d3cdc5a0c1a32a4da",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/integrations/CalendarIntegration.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908933,
+    "ast_hash": "1b2fc994f8e6cc0931cd0f20150384b7",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/integrations/WhatsAppIntegration.kt": {
+    "mtime": 1788175519.6907413,
+    "seen": 1788268509.5908952,
+    "ast_hash": "20230054bcf8693fa7c83e4fca1b503b",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/ui/ApprovalDialog.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5908966,
+    "ast_hash": "ac61ebba63feb017beb22da3491fb3b8",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/ui/AppsScreen.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5908985,
+    "ast_hash": "cfd8061f1b6b3737fb68838d2c398b00",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/ui/AutomationScreen.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909,
+    "ast_hash": "79ef425c820ed487ec581b4a3016766b",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/ui/ChatScreen.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909019,
+    "ast_hash": "05cbc8979d949939cbeb10727de0f256",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/ui/IdentityScreen.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909035,
+    "ast_hash": "bd8198113b695a2c3a3d2e51322df853",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/ui/MemoryScreen.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909054,
+    "ast_hash": "601d3026abc61a7aab0591a2d389331b",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/ui/SettingsScreen.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909069,
+    "ast_hash": "8e6b27d5199c65953506df15f2fa98bc",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/ui/VoiceScreen.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909088,
+    "ast_hash": "769a88ff29b56205565a30f1bd317a86",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/ui/YinoApp.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909107,
+    "ast_hash": "fc626d7a38a544a0f7f8e21128efcbc5",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/ui/YinoViewModel.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909126,
+    "ast_hash": "749c54d76283e63cc66ad90a5b92933e",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/ui/components/YinoComponents.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909145,
+    "ast_hash": "c18467dce52e01fb8accc8653dd047de",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/ui/theme/YinoTheme.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909164,
+    "ast_hash": "2c4f00980b9ec548f46d82b1fa32f8b1",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/voice/AndroidSttProvider.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.590918,
+    "ast_hash": "72b206ba80a51902503c11ae7d556b71",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/voice/AndroidTtsProvider.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.59092,
+    "ast_hash": "bb46747bccd6873057e276723cba5485",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/voice/AudioRecorder.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909214,
+    "ast_hash": "ee6cb0ff44d4a2e2a9e5c8f9df893f6c",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/voice/STTProvider.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909233,
+    "ast_hash": "3db7043df829e4d991104b39aa5259f6",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/voice/TTSProvider.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.590925,
+    "ast_hash": "d7438586d81ee0a2e2e51eb862d335f1",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/voice/VoskSttProvider.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909274,
+    "ast_hash": "c6fd3ae62ca72ddd99859f0cf483c01f",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/voice/WakeWordDetector.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909288,
+    "ast_hash": "1961df53717ab5bc2f9dc743a17d1e56",
+    "semantic_hash": ""
+  },
+  "app/src/main/java/com/yino/ai/voice/YinoVoiceService.kt": {
+    "mtime": 1788175519.6947412,
+    "seen": 1788268509.5909307,
+    "ast_hash": "d48858f36c51deff881cc822196216e0",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/yino/ai/core/agent/AgentLoopTest.kt": {
+    "mtime": 1788175519.6987414,
+    "seen": 1788268509.5909324,
+    "ast_hash": "90db76549fe677fa3e864e392093d82b",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/yino/ai/core/llm/LLMProviderTest.kt": {
+    "mtime": 1788175519.6987414,
+    "seen": 1788268509.5909343,
+    "ast_hash": "d6779ee4bda7d4f83983bc09eeef4979",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/yino/ai/core/security/SecurityGateTest.kt": {
+    "mtime": 1788175519.6987414,
+    "seen": 1788268509.590936,
+    "ast_hash": "e9e3cbedb5e76e814d605ed4f1f767b5",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/yino/ai/core/tools/ToolRegistryTest.kt": {
+    "mtime": 1788175519.6987414,
+    "seen": 1788268509.5909376,
+    "ast_hash": "4dd9425b2e23a3e6fab5db90dbd2e312",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/yino/ai/data/memory/InMemoryMemoryDao.kt": {
+    "mtime": 1788175519.6987414,
+    "seen": 1788268509.5909398,
+    "ast_hash": "a01d08b358331c388bf49502477f6de6",
+    "semantic_hash": ""
+  },
+  "app/src/test/java/com/yino/ai/data/memory/MemoryRepositoryTest.kt": {
+    "mtime": 1788175519.6987414,
+    "seen": 1788268509.5909414,
+    "ast_hash": "3194d9370bad45f29163491b788d6417",
+    "semantic_hash": ""
+  },
+  "build.gradle.kts": {
+    "mtime": 1788175519.6987414,
+    "seen": 1788268509.5909433,
+    "ast_hash": "23dbc1d27e9d37091bb7117635a5d720",
+    "semantic_hash": ""
+  },
+  "gradlew": {
+    "mtime": 1788175519.6987414,
+    "seen": 1788268509.5909448,
+    "ast_hash": "f092910dfa8e47c5a37a452c3f6baf8a",
+    "semantic_hash": ""
+  },
+  "settings.gradle.kts": {
+    "mtime": 1788175519.6987414,
+    "seen": 1788268509.5909467,
+    "ast_hash": "743bd49671245fdf2a4cfeacf9989471",
+    "semantic_hash": ""
+  },
+  ".github/workflows/build.yml": {
+    "mtime": 1788199195.926418,
+    "seen": 1788268509.5909488,
+    "ast_hash": "51b05834284e07dbbbdc234705b003cf",
+    "semantic_hash": ""
+  },
+  "BUILD.md": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.590951,
+    "ast_hash": "a338e68549ef26e6361fd105ac995056",
+    "semantic_hash": ""
+  },
+  "IDENTITY.md": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.5909529,
+    "ast_hash": "3b9f8f50989ea28e3728ced0286f4c1a",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.5909548,
+    "ast_hash": "324a10d0d1856852cfb5d0fbc8ead6b9",
+    "semantic_hash": ""
+  },
+  "SECURITY.md": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.5909572,
+    "ast_hash": "bc0bb5bc9e9670ba8752a0fa9713e52f",
+    "semantic_hash": ""
+  },
+  "SETUP.md": {
+    "mtime": 1788175519.6867414,
+    "seen": 1788268509.5909588,
+    "ast_hash": "4b0baee68d011cf2a31055a645f2a0ae",
+    "semantic_hash": ""
+  },
+  "test-permissions.txt": {
+    "mtime": 1788175519.6987414,
+    "seen": 1788268509.5909607,
+    "ast_hash": "098f6bcd4621d373cade4e832627b4f6",
+    "semantic_hash": ""
+  },
+  "app/src/main/res/drawable-nodpi/ic_launcher_photo.png": {
+    "mtime": 1788175519.6987414,
+    "seen": 1788268509.5909622,
+    "ast_hash": "64b13977b72a93b9b99b527394c8f85c",
+    "semantic_hash": ""
+  }
+}

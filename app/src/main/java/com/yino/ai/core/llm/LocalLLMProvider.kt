@@ -27,12 +27,16 @@ import kotlinx.serialization.json.Json
  * Ventajas: privado (el texto nunca sale del telefono) y sin API key ni cuota.
  */
 class LocalLLMProvider(
-    private val baseUrl: String = "http://127.0.0.1:11434/v1/chat/completions",
-    private val model: String = "llama3",
+    private val secureSettings: com.yino.ai.core.settings.SecureSettings,
+    private val model: String,
 ) : LLMProvider {
 
     override val id: String = "local:$model"
     override val supportsTools: Boolean = true
+
+    // Leer URL dinámicamente cada vez
+    private val baseUrl: String 
+        get() = secureSettings.localLlmBaseUrl.ifBlank { com.yino.ai.core.settings.SecureSettings.DEFAULT_LOCAL_URL }
 
     private val json = Json { ignoreUnknownKeys = true }
     private val client = HttpClient(OkHttp) {
@@ -51,7 +55,8 @@ class LocalLLMProvider(
     @Serializable private data class Tool(val type: String = "function", val function: Fun)
     @Serializable private data class Fun(val name: String, val description: String, val parameters: String)
 
-    @Serializable private data class Resp(val choices: List<Choice>)
+    @Serializable private data class Resp(val choices: List<Choice>? = null, val error: RespError? = null)
+    @Serializable private data class RespError(val message: String)
     @Serializable private data class Choice(val message: RespMsg)
     @Serializable private data class RespMsg(
         val content: String? = null,
@@ -71,12 +76,20 @@ class LocalLLMProvider(
             tools = tools,
         )
         return try {
-            val resp: Resp = client.post(baseUrl) {
+            val response = client.post(baseUrl) {
                 contentType(ContentType.Application.Json)
                 setBody(body)
-            }.body()
-            val choice = resp.choices.firstOrNull()
-                ?: return LLMResult.Text("(sin respuesta del motor local)")
+            }
+            
+            val resp: Resp = response.body()
+            
+            if (resp.error != null) {
+                return LLMResult.Text("(Error del servidor Ollama: ${resp.error.message})")
+            }
+
+            val choice = resp.choices?.firstOrNull()
+                ?: return LLMResult.Text("(Respuesta vacía del motor local)")
+            
             val tc = choice.message.tool_calls?.firstOrNull()
             if (tc != null) {
                 LLMResult.ToolCall(tc.function.name, tc.function.arguments)
@@ -84,7 +97,7 @@ class LocalLLMProvider(
                 LLMResult.Text(choice.message.content ?: "")
             }
         } catch (e: Exception) {
-            LLMResult.Text("(Motor local no disponible en $baseUrl: ${e.message})")
+            LLMResult.Text("(Error de conexión en $baseUrl: ${e.message})")
         }
     }
 }

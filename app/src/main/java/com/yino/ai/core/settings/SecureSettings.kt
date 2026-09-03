@@ -10,7 +10,7 @@ class SecureSettings(context: Context) {
     private val appContext = context.applicationContext
 
     private val prefs by lazy {
-        runCatching {
+        try {
             val masterKey = MasterKey.Builder(appContext)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                 .build()
@@ -21,11 +21,9 @@ class SecureSettings(context: Context) {
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
             )
-        }.getOrElse { error ->
-            Log.w("YinoAI", "EncryptedSharedPreferences fallo: ${error.message}. Fallback SIN CIFRAR.")
-            val fallback = appContext.getSharedPreferences("yino_secure_fallback", Context.MODE_PRIVATE)
-            fallback.edit().putBoolean("encryption_failed", true).apply()
-            fallback
+        } catch (error: Exception) {
+            Log.w("YinoAI", "EncryptedSharedPreferences falló: ${error.message}. Usando SharedPreferences sin cifrar.")
+            appContext.getSharedPreferences("yino_secure_fallback", Context.MODE_PRIVATE)
         }
     }
 
@@ -93,11 +91,11 @@ class SecureSettings(context: Context) {
         private const val KEY_REQUIRE_FACE = "require_face"
         private const val KEY_REQUIRE_VOICE = "require_voice"
 
-        const val DEFAULT_VOSK = "/storage/emulated/0/Android/data/com.yino.ai/files/vosk-model-small-es-0.42"
+        const val DEFAULT_VOSK = "/storage/emulated/0/Download/YinoAI/vosk-model"
         const val DEFAULT_URL = "https://api.openai.com/v1/chat/completions"
         const val DEFAULT_MODEL = "gpt-4o-mini"
         const val DEFAULT_LOCAL_MODEL = "llama3"
-        const val DEFAULT_LOCAL_URL = "http://127.0.0.1:11434/v1/chat/completions"
-        const val DEFAULT_LOCAL_MODEL_PATH = "/storage/emulated/0/Android/data/com.yino.ai/files/gguf-model.gguf"
+        const val DEFAULT_LOCAL_URL = "http://192.168.1.123:11434/v1/chat/completions"
+        const val DEFAULT_LOCAL_MODEL_PATH = "/storage/emulated/0/Download/YinoAI/gguf-model.gguf"
     }
 }
