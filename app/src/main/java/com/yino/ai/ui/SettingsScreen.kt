@@ -24,7 +24,10 @@ fun SettingsScreen(viewModel: YinoViewModel) {
 
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Usar LLM local", color = Color.Cyan)
-            Switch(checked = localLlm, onCheckedChange = { localLlm = it; YinoGraph.setUseLocalLlm(it) })
+            Switch(checked = localLlm, onCheckedChange = { 
+                localLlm = it
+                YinoGraph.setUseLocalLlm(it) 
+            })
         }
 
         if (!localLlm) {
@@ -38,5 +41,6 @@ fun SettingsScreen(viewModel: YinoViewModel) {
                 android.widget.Toast.makeText(context, "Configuración guardada", android.widget.Toast.LENGTH_SHORT).show()
             }) { Text("Guardar configuración", color = Color.Cyan) }
         }
+        Text("Ruta Vosk: ${YinoGraph.secure.voskModelPath}", style = MaterialTheme.typography.bodySmall, color = Color.Cyan)
     }
 }
