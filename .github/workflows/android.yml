@@ -1,0 +1,54 @@
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      ANDROID_SDK_ROOT: "${{ runner.android-sdk }}"
+
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ☕ JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: 🤖 Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 34
+          architecture: 'arm64'
+          ndk: '25.2.1803019'
+
+      - name: 📜 Licencias Android
+        run: yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
+
+      - name: ⚙️ Compilar APK
+        env:
+          ANDROID_SDK_ROOT: "${{ runner.android-sdk }}"
+        run: cd yino-android && rm -rf ~/.gradle/caches/8.9/transforms && ./gradlew assembleDebug --no-daemon -Dorg.gradle.jvmargs="-Xmx2g --illegal-access=permit"
+
+      - name: 🔍 Verificar APK
+        run: ls -la yino-android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: 📤 Subir artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: yino-debug-apk
+          path: yino-android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      - name: 📋 Instrucciones instalación
+        run: echo "==========================================" && echo "🤖 Yino AI - Build Completo" && echo "==========================================" && echo "📲 Para instalar: adb connect IP_CELULAR:5555 && adb install yino-android/app/build/outputs/apk/debug/app-debug.apk" && echo "⚙️ Configurar LLM en la app"
