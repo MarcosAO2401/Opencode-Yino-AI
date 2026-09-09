@@ -52,14 +52,9 @@ class YinoViewModel : ViewModel() {
                         else -> "Buenas noches, Señor."
                     }
                     
-                    // Intentar obtener clima
+                    // Intentar obtener clima usando herramienta weather nativa
                     val weather = try {
-                        val weatherRequest = com.yino.ai.core.llm.LLMRequest(
-                            messages = listOf(com.yino.ai.core.llm.ChatMessage(com.yino.ai.core.llm.Role.USER, "Obtén el clima brevemente")),
-                            tools = listOf(ToolSpec("web_search", "Busca clima", "{}"))
-                        )
-                        // Ejecutar búsqueda rápida a través del agente o herramienta
-                        val res = YinoGraph.registry.execute("web_search", "{\"query\": \"clima actual\"}", ToolContext(true, emptySet()))
+                        val res = YinoGraph.registry.execute("weather", "{\"location\": \"auto\"}", ToolContext(true, emptySet()))
                         res.message
                     } catch (e: Exception) {
                         "no pude obtener el clima actualmente"
