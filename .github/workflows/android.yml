@@ -1,0 +1,103 @@
+name: Android CI
+
+on:
+  push:
+    branches: [main, develop, yino-p0*]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Setup Android SDK
+        run: |
+          yes | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --licenses
+          ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager "build-tools;34.0.0" "platforms;android-34"
+          chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Run Unit Tests
+        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
+
+      - name: Run Lint
+        run: ./gradlew lintDebug --no-daemon --stacktrace || true
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+
+      - name: Upload Test Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-reports
+          path: app/build/reports/tests/
+          retention-days: 7
+
+      - name: Upload Lint Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lint-report
+          path: app/build/reports/lint-results-debug.html
+          retention-days: 7
+
+  verify-apk:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-debug-apk
+          path: artifacts/
+
+      - name: Verify APK exists
+        run: |
+          ls -la artifacts/
+          test -f artifacts/app-debug.apk
+
+      - name: Check APK size
+        run: |
+          SIZE=$(stat -c%s artifacts/app-debug.apk)
+          echo "APK size: $SIZE bytes ($(($SIZE / 1024 / 1024)) MB)"
+          if [ $SIZE -lt 100000 ]; then
+            echo "APK too small, likely empty"
+            exit 1
+          fi
+
+      - name: Verify APK package
+        run: |
+          AAPT2=$(find $ANDROID_HOME/build-tools -name "aapt2" | head -1)
+          if [ -n "$AAPT2" ]; then
+            echo "Using aapt2: $AAPT2"
+            $AAPT2 dump badging artifacts/app-debug.apk | head -30
+          else
+            echo "aapt2 not found, skipping badge verification"
+          fi
+
+      - name: Upload verified APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: yino-ai-debug-apk
+          path: artifacts/app-debug.apk
+          retention-days: 30
