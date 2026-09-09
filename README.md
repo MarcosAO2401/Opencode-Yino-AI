@@ -43,3 +43,4 @@ export ANDROID_HOME=/ruta/a/android-sdk
 - Sin emulador en el entorno de desarrollo; probar en dispositivo físico.
 - Play Store: una app de automatización vía Accessibility debe justificar
   propósito de accesibilidad o será rechazada (distribuir vía sideload).
+# Build trigger Wed Sep  9 06:59:24 -03 2026
