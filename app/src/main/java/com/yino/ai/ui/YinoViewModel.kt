@@ -52,7 +52,7 @@ class YinoViewModel : ViewModel() {
                         else -> "Buenas noches, Señor."
                     }
                     
-                    // Intentar obtener clima usando herramienta weather nativa
+                    // Clima inline sin abrir navegador (via WeatherTool)
                     val weather = try {
                         val res = YinoGraph.registry.execute("weather", "{\"location\": \"auto\"}", ToolContext(true, emptySet()))
                         res.message
