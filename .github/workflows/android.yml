@@ -2,7 +2,7 @@ name: Android CI
 
 on:
   push:
-    branches: [main, develop, yino-p0*]
+    branches: [main, develop, yino-p0*, yino-v2*]
   pull_request:
     branches: [main, develop]
 
