@@ -78,6 +78,10 @@ class SecureSettings(context: Context) {
         get() = prefs.getString(KEY_PASSPHRASE, "") ?: ""
         set(value) = prefs.edit().putString(KEY_PASSPHRASE, value).apply()
 
+    var defaultCity: String
+        get() = prefs.getString("default_city", "") ?: ""
+        set(value) = prefs.edit().putString("default_city", value).apply()
+
     companion object {
         private const val KEY_API = "llm_api_key"
         private const val KEY_URL = "llm_base_url"

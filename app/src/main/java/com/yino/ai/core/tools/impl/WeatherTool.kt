@@ -21,8 +21,12 @@ class WeatherTool(private val context: Context) : Tool {
     override suspend fun execute(arguments: JSONObject, ctx: ToolContext): ToolResult {
         val location = arguments.optString("location", "auto").ifBlank { "auto" }
         return try {
-            val url = if (location.equals("auto", true)) "https://wttr.in/?format=j1" else {
-                val encoded = java.net.URLEncoder.encode(location, "UTF-8")
+            val effectiveLocation = if (location.equals("auto", true)) {
+                val saved = try { com.yino.ai.core.YinoGraph.secure.defaultCity } catch (_: Exception) { "" }
+                if (saved.isNotBlank()) saved else "auto"
+            } else location
+            val url = if (effectiveLocation.equals("auto", true)) "https://wttr.in/?format=j1" else {
+                val encoded = java.net.URLEncoder.encode(effectiveLocation, "UTF-8")
                 "https://wttr.in/$encoded?format=j1"
             }
             val text = client.get(url).bodyAsText()
@@ -36,7 +40,7 @@ class WeatherTool(private val context: Context) : Tool {
             val humidity = curr.optString("humidity", "?")
             val desc = curr.optJSONArray("weatherDesc")?.getJSONObject(0)?.optString("value") ?: "?"
             val wind = curr.optString("windspeedKmph", "?")
-            val cityLabel = if (location.equals("auto", true) && area.isNotBlank()) "$area${if (country.isNotBlank()) ", $country" else ""}" else location
+            val cityLabel = if (effectiveLocation.equals("auto", true) && area.isNotBlank()) "$area${if (country.isNotBlank()) ", $country" else ""}" else effectiveLocation
             val msg = "Clima en $cityLabel: $temp°C (sensación $feels°C), $desc, humedad $humidity%, viento $wind km/h."
             ToolResult(true, msg)
         } catch (e: Exception) {
