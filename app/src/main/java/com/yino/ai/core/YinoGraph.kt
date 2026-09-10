@@ -37,7 +37,7 @@ import com.yino.ai.core.tools.impl.WeatherTool
 import com.yino.ai.core.tools.impl.WebSearchTool
 import com.yino.ai.core.tools.impl.NotificationReplyTool
 import com.yino.ai.data.memory.MemoryRepository
-import com.yino.ai.voice.AndroidTtsProvider
+import com.yino.ai.voice.PiperTtsProvider
 import com.yino.ai.voice.TTSProvider
 
 object YinoGraph {
@@ -73,7 +73,7 @@ object YinoGraph {
         )
         AuditLog.init(appContext)
         memory = MemoryRepository(appContext)
-        tts = AndroidTtsProvider(appContext)
+        tts = PiperTtsProvider(appContext)
         registerTools()
         rebuildLlm()
     }
