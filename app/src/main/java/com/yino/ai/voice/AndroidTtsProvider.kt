@@ -15,25 +15,39 @@ class AndroidTtsProvider(context: Context) : TTSProvider {
     init {
         tts = TextToSpeech(context.applicationContext) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                val locale = Locale.UK
-                tts?.language = locale
+                val locale = Locale("es", "ES")
+                val result = tts?.setLanguage(locale)
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    tts?.language = Locale.getDefault()
+                }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     tts?.voices?.forEach { voice ->
-                        if (voice.locale == locale && voice.quality >= Voice.QUALITY_HIGH &&
-                            voice.name.lowercase().contains("male")) {
+                        val isSpanish = voice.locale.language == "es"
+                        val isMale = voice.name.lowercase().contains("male") || voice.name.lowercase().contains("alvaro") || voice.name.lowercase().contains("pablo") || voice.name.lowercase().contains("enrique")
+                        if (isSpanish && isMale && voice.quality >= Voice.QUALITY_HIGH) {
                             jarvisVoice = voice
                         }
                     }
                     if (jarvisVoice == null) {
                         tts?.voices?.forEach { voice ->
-                            if (voice.locale == locale && voice.name.lowercase().contains("male")) {
+                            if (voice.locale.language == "es" && voice.name.lowercase().contains("male")) {
                                 jarvisVoice = voice
                             }
                         }
                     }
-                    tts?.setPitch(0.9f)
-                    tts?.setSpeechRate(0.95f)
+                    if (jarvisVoice == null) {
+                        tts?.voices?.forEach { voice ->
+                            if (voice.locale.language == "es") {
+                                jarvisVoice = voice
+                            }
+                        }
+                    }
+                    tts?.setPitch(0.88f)
+                    tts?.setSpeechRate(0.92f)
                     jarvisVoice?.let { tts?.voice = it }
+                } else {
+                    tts?.setPitch(0.88f)
+                    tts?.setSpeechRate(0.92f)
                 }
                 ready = true
             }
