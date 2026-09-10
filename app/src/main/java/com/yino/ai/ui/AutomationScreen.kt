@@ -27,13 +27,13 @@ import com.yino.ai.automation.YinoAccessibilityService
 @Composable
 fun AutomationScreen(viewModel: YinoViewModel) {
     val context = LocalContext.current
-    var enabled by remember { mutableStateOf(YinoAccessibilityService.isEnabled()) }
+    var enabled by remember { mutableStateOf(YinoAccessibilityService.isEnabled(context)) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                enabled = YinoAccessibilityService.isEnabled()
+                enabled = YinoAccessibilityService.isEnabled(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

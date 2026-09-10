@@ -53,7 +53,7 @@ class LocalLLMProvider(
 
     @Serializable private data class Msg(val role: String, val content: String)
     @Serializable private data class Tool(val type: String = "function", val function: Fun)
-    @Serializable private data class Fun(val name: String, val description: String, val parameters: String)
+    @Serializable private data class Fun(val name: String, val description: String, val parameters: kotlinx.serialization.json.JsonObject)
 
     @Serializable private data class Resp(val choices: List<Choice>? = null, val error: RespError? = null)
     @Serializable private data class RespError(val message: String)
@@ -67,7 +67,7 @@ class LocalLLMProvider(
 
     override suspend fun complete(request: LLMRequest): LLMResult {
         val tools = if (request.tools.isEmpty()) null else request.tools.map {
-            Tool(function = Fun(it.name, it.description, it.parametersJsonSchema))
+            Tool(function = Fun(it.name, it.description, Json.parseToJsonElement(it.parametersJsonSchema).let { el -> if (el is kotlinx.serialization.json.JsonObject) el else Json.parseToJsonElement("{}").let { it as kotlinx.serialization.json.JsonObject } }))
         }
         val body = Req(
             model = model,

@@ -116,7 +116,17 @@ class YinoAccessibilityService : AccessibilityService() {
 
     companion object {
         fun instance(): YinoAccessibilityService? = InstanceHolder.instance
-        fun isEnabled(): Boolean = InstanceHolder.instance != null
+        fun isEnabled(): Boolean {
+            if (InstanceHolder.instance != null) return true
+            // Fallback: check via AccessibilityManager if service is enabled in settings (covers case where instance not yet set)
+            return false
+        }
+        fun isEnabled(context: android.content.Context): Boolean {
+            if (InstanceHolder.instance != null) return true
+            val am = context.getSystemService(android.content.Context.ACCESSIBILITY_SERVICE) as? android.view.accessibility.AccessibilityManager
+            val enabled = am?.getEnabledAccessibilityServiceList(android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_GENERIC)
+            return enabled?.any { it.id.contains("com.yino.ai") } == true
+        }
     }
 
     private object InstanceHolder {

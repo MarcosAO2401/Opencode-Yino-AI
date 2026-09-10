@@ -217,18 +217,42 @@ fun SettingsScreen(viewModel: YinoViewModel) {
 
         Button(onClick = {
             scope.launch(Dispatchers.IO) {
-                voskStatus = "Descargando modelos (esto puede tardar)..."
+                voskStatus = "Inicializando Jarvis..."
                 try {
-                    // Simulación de descarga y configuración
                     val destBase = File(context.getExternalFilesDir(null), "")
-                    val ggufDest = File(destBase, "gguf-model.gguf")
                     val voskDest = File(destBase, "vosk-model-small-es-0.42")
-
-                    // Aquí iría la lógica de descarga real con Ktor
-                    // Por ahora, configuramos los paths esperados
-                    YinoGraph.secure.localModelPath = ggufDest.absolutePath
-                    YinoGraph.secure.voskModelPath = voskDest.absolutePath
-                    voskStatus = "Modelos configurados en: ${destBase.absolutePath}"
+                    // Si ya existe en Download, copiarlo automáticamente
+                    val downloadVosk = File("/storage/emulated/0/Download/YinoAI/vosk-model-small-es-0.42")
+                    val downloadVoskAlt = File("/storage/emulated/0/Download/YinoAI/vosk-model")
+                    when {
+                        voskDest.exists() && File(voskDest, "am").exists() -> {
+                            YinoGraph.secure.voskModelPath = voskDest.absolutePath
+                            voskStatus = "✅ Vosk ya estaba en ${voskDest.absolutePath}"
+                        }
+                        downloadVosk.exists() && File(downloadVosk, "am").exists() -> {
+                            voskStatus = "Copiando Vosk desde Download..."
+                            copyFileTree(downloadVosk, voskDest)
+                            YinoGraph.secure.voskModelPath = voskDest.absolutePath
+                            voskStatus = "✅ Vosk copiado a ${voskDest.absolutePath} (${voskDest.listFiles()?.size} archivos)"
+                        }
+                        downloadVoskAlt.exists() && File(downloadVoskAlt, "am").exists() -> {
+                            voskStatus = "Copiando Vosk desde Download/vosk-model..."
+                            copyFileTree(downloadVoskAlt, voskDest)
+                            YinoGraph.secure.voskModelPath = voskDest.absolutePath
+                            voskStatus = "✅ Vosk copiado a ${voskDest.absolutePath}"
+                        }
+                        else -> {
+                            YinoGraph.secure.voskModelPath = voskDest.absolutePath
+                            voskStatus = "⚠️ No se encontró Vosk en Download/YinoAI. Usa 'Seleccionar carpeta manualmente' y elige vosk-model-small-es-0.42"
+                        }
+                    }
+                    // Configurar Ollama por defecto si no existe
+                    if (YinoGraph.secure.localLlmBaseUrl.isBlank()) {
+                        YinoGraph.secure.localLlmBaseUrl = "http://127.0.0.1:11434/v1/chat/completions"
+                    }
+                    if (YinoGraph.secure.localModelName.isBlank()) {
+                        YinoGraph.secure.localModelName = "qwen2.5:7b"
+                    }
                 } catch (e: Exception) {
                     voskStatus = "Error: ${e.message}"
                 }
@@ -237,7 +261,7 @@ fun SettingsScreen(viewModel: YinoViewModel) {
             Text("Inicializar Jarvis (Descargar modelos automáticamente)")
         }
         Text(
-            "Esto descargará e instalará automáticamente el cerebro de Jarvis.",
+            "Si tienes Vosk en Download/YinoAI, lo copiará automáticamente. Si no, usa el botón de abajo para seleccionarlo.",
             style = MaterialTheme.typography.bodySmall,
         )
 
@@ -308,7 +332,7 @@ private fun PresetChip(label: String, onClick: () -> Unit) {
 }
 
 private fun copyDoc(context: Context, doc: DocumentFile, dest: File, depth: Int) {
-    if (depth > 50) return // Prevent StackOverflow on deep directory trees
+    if (depth > 50) return
     if (doc.isDirectory) {
         dest.mkdirs()
         doc.listFiles().forEach { child ->
@@ -321,6 +345,20 @@ private fun copyDoc(context: Context, doc: DocumentFile, dest: File, depth: Int)
             File(dest, name).outputStream().use { out ->
                 input.copyTo(out, 8192)
             }
+        }
+    }
+}
+
+private fun copyFileTree(src: File, dest: File) {
+    if (!src.exists()) return
+    if (src.isDirectory) {
+        dest.mkdirs()
+        src.listFiles()?.forEach { child ->
+            copyFileTree(child, File(dest, child.name))
+        }
+    } else {
+        src.inputStream().use { input ->
+            dest.outputStream().use { out -> input.copyTo(out) }
         }
     }
 }
