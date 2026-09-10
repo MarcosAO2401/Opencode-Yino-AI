@@ -31,7 +31,7 @@ import com.yino.ai.ui.theme.YinoColors
 import com.yino.ai.ui.theme.YinoTheme
 
 @Composable
-fun YinoApp(viewModel: YinoViewModel) {
+fun YinoApp(viewModel: YinoViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
     YinoTheme {
         val navController = rememberNavController()
         val backStack by navController.currentBackStackEntryAsState()
