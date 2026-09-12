@@ -36,21 +36,40 @@ class LocalLLMProvider(
         val temperature: Float,
         val tools: List<Tool>? = null,
     )
-    @Serializable private data class Msg(val role: String, val content: String)
+    @Serializable private data class Msg(
+        val role: String,
+        val content: String? = null,
+        val tool_call_id: String? = null,
+        val tool_calls: List<AssistantToolCall>? = null,
+    )
+    @Serializable private data class AssistantToolCall(
+        val id: String,
+        val type: String = "function",
+        val function: AssistantFunction,
+    )
+    @Serializable private data class AssistantFunction(val name: String, val arguments: String)
     @Serializable private data class Tool(val type: String = "function", val function: Fun)
     @Serializable private data class Fun(val name: String, val description: String, val parameters: JsonElement)
     @Serializable private data class Resp(val choices: List<Choice>? = null, val error: RespError? = null)
     @Serializable private data class RespError(val message: String)
     @Serializable private data class Choice(val message: RespMsg)
     @Serializable private data class RespMsg(val content: String? = null, val tool_calls: List<ToolCall>? = null)
-    @Serializable private data class ToolCall(val function: ToolCallFun)
+    @Serializable private data class ToolCall(val id: String? = null, val function: ToolCallFun)
     @Serializable private data class ToolCallFun(val name: String, val arguments: String)
 
-    private fun roleName(role: Role): String = when (role) {
-        Role.SYSTEM -> "system"
-        Role.USER -> "user"
-        Role.ASSISTANT -> "assistant"
-        Role.TOOL -> "tool"
+    private fun toMessage(message: ChatMessage): Msg {
+        return when (message.role) {
+            Role.ASSISTANT -> Msg(
+                role = "assistant",
+                content = message.content.ifBlank { null },
+                tool_calls = if (message.toolCallName != null && message.toolCallArguments != null && message.toolCallId != null) {
+                    listOf(AssistantToolCall(message.toolCallId, function = AssistantFunction(message.toolCallName, message.toolCallArguments)))
+                } else null,
+            )
+            Role.TOOL -> Msg(role = "tool", content = message.content, tool_call_id = message.toolCallId)
+            Role.SYSTEM -> Msg(role = "system", content = message.content)
+            Role.USER -> Msg(role = "user", content = message.content)
+        }
     }
 
     override suspend fun complete(request: LLMRequest): LLMResult {
@@ -63,7 +82,7 @@ class LocalLLMProvider(
         }
         val body = Req(
             model = model,
-            messages = request.messages.map { message -> Msg(roleName(message.role), message.content) },
+            messages = request.messages.map(::toMessage),
             temperature = request.temperature,
             tools = tools,
         )
@@ -76,7 +95,7 @@ class LocalLLMProvider(
             if (resp.error != null) return LLMResult.Text("(Error del servidor local: ${resp.error.message})")
             val choice = resp.choices?.firstOrNull() ?: return LLMResult.Text("(Respuesta vacía del motor local)")
             val tc = choice.message.tool_calls?.firstOrNull()
-            if (tc != null) LLMResult.ToolCall(tc.function.name, tc.function.arguments)
+            if (tc != null) LLMResult.ToolCall(tc.function.name, tc.function.arguments, tc.id)
             else LLMResult.Text(choice.message.content ?: "")
         } catch (e: Exception) {
             LLMResult.Text("(Error de conexión en $baseUrl: ${e.message})")
