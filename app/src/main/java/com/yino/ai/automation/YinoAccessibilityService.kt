@@ -23,10 +23,7 @@ class YinoAccessibilityService : AccessibilityService() {
         InstanceHolder.instance = this
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        // El parseo de la UI se hace bajo demanda (ver ScreenUnderstandingEngine),
-        // no aquí, para no bloquear el callback.
-    }
+    override fun onAccessibilityEvent(event: AccessibilityEvent) {}
 
     override fun onInterrupt() {}
 
@@ -38,27 +35,13 @@ class YinoAccessibilityService : AccessibilityService() {
 
     private fun ensureExecutor(): Boolean = executor != null
 
-    /** Encola el gesto y devuelve false si el servicio no está disponible o el buffer lo rechazó. */
     fun tap(x: Float, y: Float): Boolean = executor?.submit(UiAction.Tap(x, y)) == true
-
-    fun swipe(x1: Float, y1: Float, x2: Float, y2: Float): Boolean =
-        executor?.submit(UiAction.Swipe(x1, y1, x2, y2)) == true
-
+    fun swipe(x1: Float, y1: Float, x2: Float, y2: Float): Boolean = executor?.submit(UiAction.Swipe(x1, y1, x2, y2)) == true
     fun global(action: Int): Boolean = executor?.submit(UiAction.Global(action)) == true
-
-    fun click(node: AccessibilityNodeInfo): Boolean =
-        executor?.submit(UiAction.ClickNode(node)) == true
-
-    fun type(node: AccessibilityNodeInfo, text: String): Boolean =
-        executor?.submit(UiAction.TypeText(node, text)) == true
-
+    fun click(node: AccessibilityNodeInfo): Boolean = executor?.submit(UiAction.ClickNode(node)) == true
+    fun type(node: AccessibilityNodeInfo, text: String): Boolean = executor?.submit(UiAction.TypeText(node, text)) == true
     fun root(): AccessibilityNodeInfo? = rootInActiveWindow
 
-    /**
-     * Busca el primer nodo cuya etiqueta (texto o contentDescription) contenga
-     * [text] y hace clic en él (o en su ancestro clickable).
-     * Devuelve true solo si Android acepta realmente ACTION_CLICK.
-     */
     fun findAndClick(text: String): Boolean {
         if (!ensureExecutor()) return false
         var clicked = false
@@ -66,17 +49,15 @@ class YinoAccessibilityService : AccessibilityService() {
             if (root == null) return@withRoot
             fun dfs(node: AccessibilityNodeInfo?): Boolean {
                 if (node == null) return false
-                val label =
-                    (node.text?.toString().orEmpty()) + " " + (node.contentDescription?.toString().orEmpty())
-                if (label.contains(text, ignoreCase = true)) {
+                val label = (node.text?.toString().orEmpty() + " " + node.contentDescription?.toString().orEmpty()).trim()
+                if (label.contains(text, ignoreCase = true) && node.isVisibleToUser && node.isEnabled) {
                     var target: AccessibilityNodeInfo? = node
                     while (target != null && !target.isClickable) target = target.parent
-                    clicked = (target ?: node).performAction(ACTION_CLICK)
+                    clicked = target?.performAction(ACTION_CLICK) == true
+                    if (!clicked && target != node) clicked = node.performAction(ACTION_CLICK)
                     return clicked
                 }
-                for (i in 0 until node.childCount) {
-                    if (dfs(node.getChild(i))) return true
-                }
+                for (i in 0 until node.childCount) if (dfs(node.getChild(i))) return true
                 return false
             }
             clicked = dfs(root)
@@ -85,40 +66,57 @@ class YinoAccessibilityService : AccessibilityService() {
     }
 
     /**
-     * Escribe [text] en el primer campo editable visible (buscador, caja de
-     * mensaje, etc.). Devuelve true solo si Android acepta ACTION_SET_TEXT.
+     * Busca un campo editable visible. Si [hint] existe, prioriza nodos cuyo
+     * texto, descripción o resource-id coincidan con el hint; luego recurre al
+     * primer campo editable visible como fallback.
      */
-    fun findEditableAndType(text: String): Boolean {
+    fun findEditableAndType(text: String, hint: String? = null): Boolean {
         if (!ensureExecutor()) return false
         var ok = false
         withRoot { root ->
             if (root == null) return@withRoot
-            fun dfs(node: AccessibilityNodeInfo?): Boolean {
-                if (node == null) return false
-                if (node.isEditable) {
-                    val b = Bundle().apply {
-                        putCharSequence(ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
-                    }
-                    ok = node.performAction(ACTION_SET_TEXT, b)
-                    return ok
-                }
-                for (i in 0 until node.childCount) {
-                    if (dfs(node.getChild(i))) return true
-                }
-                return false
+            val candidates = mutableListOf<AccessibilityNodeInfo>()
+            fun collect(node: AccessibilityNodeInfo?) {
+                if (node == null) return
+                if (node.isEditable && node.isVisibleToUser && node.isEnabled) candidates += node
+                for (i in 0 until node.childCount) collect(node.getChild(i))
             }
-            ok = dfs(root)
+            collect(root)
+            if (candidates.isEmpty()) return@withRoot
+
+            fun score(node: AccessibilityNodeInfo): Int {
+                if (hint.isNullOrBlank()) return 0
+                val h = hint.trim()
+                val values = listOf(
+                    node.text?.toString().orEmpty(),
+                    node.hintText?.toString().orEmpty(),
+                    node.contentDescription?.toString().orEmpty(),
+                    node.viewIdResourceName.orEmpty()
+                )
+                return values.sumOf { value ->
+                    when {
+                        value.equals(h, ignoreCase = true) -> 100
+                        value.contains(h, ignoreCase = true) -> 50
+                        else -> 0
+                    }
+                }
+            }
+
+            val target = candidates.maxByOrNull { score(it) } ?: return@withRoot
+            val b = Bundle().apply { putCharSequence(ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text) }
+            ok = target.performAction(ACTION_SET_TEXT, b)
+            if (!ok) {
+                // Fallback: focus the field and retry SET_TEXT.
+                target.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+                ok = target.performAction(ACTION_SET_TEXT, b)
+            }
         }
         return ok
     }
 
     private inline fun withRoot(block: (AccessibilityNodeInfo?) -> Unit) {
         val root = rootInActiveWindow
-        try {
-            block(root)
-        } finally {
-            root?.recycle()
-        }
+        try { block(root) } finally { root?.recycle() }
     }
 
     companion object {
