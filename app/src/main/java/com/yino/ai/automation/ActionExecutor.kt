@@ -34,9 +34,12 @@ class ActionExecutor {
         actions.onEach { execute(it) }.launchIn(scope)
     }
 
-    fun submit(action: UiAction) {
-        actions.tryEmit(action)
-    }
+    /**
+     * Encola una acción. true significa que fue aceptada por el buffer del
+     * ejecutor; no significa que Android ya haya completado la acción.
+     * La verificación final debe hacerse leyendo nuevamente la UI.
+     */
+    fun submit(action: UiAction): Boolean = actions.tryEmit(action)
 
     private fun execute(action: UiAction) {
         val svc = service ?: return
