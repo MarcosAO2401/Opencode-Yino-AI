@@ -54,14 +54,16 @@ class LocalLLMProvider(
     }
 
     override suspend fun complete(request: LLMRequest): LLMResult {
-        val tools = if (request.tools.isEmpty()) null else request.tools.map {
-            val parameters = runCatching { json.parseToJsonElement(it.parametersJsonSchema) }
-                .getOrElse { return LLMResult.Text("(Esquema JSON inválido para la herramienta ${it.name})") }
-            Tool(function = Fun(it.name, it.description, parameters))
+        val tools = if (request.tools.isEmpty()) null else request.tools.map { toolSpec ->
+            val parameters = runCatching { json.parseToJsonElement(toolSpec.parametersJsonSchema) }
+                .getOrElse { failure ->
+                    return LLMResult.Text("(Esquema JSON inválido para la herramienta ${toolSpec.name}: ${failure.message})")
+                }
+            Tool(function = Fun(toolSpec.name, toolSpec.description, parameters))
         }
         val body = Req(
             model = model,
-            messages = request.messages.map { Msg(roleName(it.role), it.content) },
+            messages = request.messages.map { message -> Msg(roleName(message.role), message.content) },
             temperature = request.temperature,
             tools = tools,
         )
