@@ -38,13 +38,19 @@ class YinoAccessibilityService : AccessibilityService() {
 
     private fun ensureExecutor(): Boolean = executor != null
 
-    fun tap(x: Float, y: Float) = executor?.submit(UiAction.Tap(x, y))
-    fun swipe(x1: Float, y1: Float, x2: Float, y2: Float) =
-        executor?.submit(UiAction.Swipe(x1, y1, x2, y2))
-    fun global(action: Int) = executor?.submit(UiAction.Global(action))
-    fun click(node: AccessibilityNodeInfo) = executor?.submit(UiAction.ClickNode(node))
-    fun type(node: AccessibilityNodeInfo, text: String) =
-        executor?.submit(UiAction.TypeText(node, text))
+    /** Encola el gesto y devuelve false si el servicio no está disponible o el buffer lo rechazó. */
+    fun tap(x: Float, y: Float): Boolean = executor?.submit(UiAction.Tap(x, y)) == true
+
+    fun swipe(x1: Float, y1: Float, x2: Float, y2: Float): Boolean =
+        executor?.submit(UiAction.Swipe(x1, y1, x2, y2)) == true
+
+    fun global(action: Int): Boolean = executor?.submit(UiAction.Global(action)) == true
+
+    fun click(node: AccessibilityNodeInfo): Boolean =
+        executor?.submit(UiAction.ClickNode(node)) == true
+
+    fun type(node: AccessibilityNodeInfo, text: String): Boolean =
+        executor?.submit(UiAction.TypeText(node, text)) == true
 
     fun root(): AccessibilityNodeInfo? = rootInActiveWindow
 
