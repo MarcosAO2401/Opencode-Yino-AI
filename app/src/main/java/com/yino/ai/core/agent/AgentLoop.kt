@@ -9,6 +9,7 @@ import com.yino.ai.core.security.AuditLog
 import com.yino.ai.core.security.SecurityGate
 import com.yino.ai.core.tools.ToolContext
 import com.yino.ai.core.tools.ToolRegistry
+import kotlinx.coroutines.delay
 
 /**
  * Núcleo del agente Yino: Observation -> Plan -> Action -> Verification.
@@ -98,9 +99,27 @@ class AgentLoop(
                         }
                     } else {
                         toolFailures = 0
+
+                        // Las acciones de UI se aceptan de forma síncrona en la herramienta,
+                        // pero su efecto visual ocurre de forma asíncrona en Android. Para que
+                        // Yino no confunda "acción aceptada" con "acción completada", releemos
+                        // automáticamente la pantalla antes de pedir al LLM que evalúe el resultado.
+                        if (tool.id in POST_ACTION_SCREEN_VERIFY_TOOLS) {
+                            delay(300)
+                            val verifyCtx = ToolContext(accessibilityAvailable(), grantedPermissions())
+                            val verify = registry.execute("read_screen", "{}", verifyCtx)
+                            val verification = if (verify.success) {
+                                "[post_action_read_screen] success=true: ${verify.message}"
+                            } else {
+                                "[post_action_read_screen] success=false: ${verify.message}"
+                            }
+                            history += ChatMessage(Role.TOOL, verification, toolCallId = callId)
+                            lastToolMessage = verification
+                        }
+
                         history += ChatMessage(
                             Role.SYSTEM,
-                            "VERIFICACIÓN: observa el resultado de ${tool.id}. Determina si satisface realmente la solicitud del usuario. Si no, ejecuta otra acción; si sí, responde confirmando únicamente lo que está verificado.",
+                            "VERIFICACIÓN: observa el resultado de ${tool.id} y, si existe, la lectura de pantalla posterior. Determina si satisface realmente la solicitud del usuario. Si no, ejecuta otra acción; si sí, responde confirmando únicamente lo que está verificado.",
                         )
                     }
 
@@ -123,6 +142,14 @@ class AgentLoop(
     }
 
     companion object {
+        private val POST_ACTION_SCREEN_VERIFY_TOOLS = setOf(
+            "ui_find_and_click",
+            "tap",
+            "scroll",
+            "back",
+            "type_text",
+        )
+
         val SYSTEM_PROMPT = """
 Eres Yino, el asistente personal avanzado de Yino AI, inspirado en un sistema tipo JARVIS.
 
@@ -136,12 +163,13 @@ CICLO OPERATIVO OBLIGATORIO:
 1. OBSERVA: interpreta la solicitud y el contexto disponible.
 2. PLANIFICA: divide tareas complejas en pasos mínimos necesarios.
 3. ACTÚA: usa las herramientas apropiadas.
-4. VERIFICA: analiza el resultado de cada herramienta.
-5. REPLANIFICA: si falló, corrige argumentos o utiliza otra herramienta.
+4. VERIFICA: analiza el resultado de cada herramienta y la lectura de pantalla posterior cuando exista.
+5. REPLANIFICA: si falló o la pantalla no cambió como esperaba, corrige argumentos o utiliza otra herramienta.
 6. FINALIZA: solo confirma lo que realmente esté verificado.
 
 REGLAS:
 - Usa read_screen antes de actuar sobre una interfaz cuando necesites conocer su estado.
+- Después de una acción de interfaz, utiliza la lectura posterior proporcionada por el sistema para comprobar el nuevo estado antes de afirmar que funcionó.
 - Si una acción requiere accesibilidad o permisos y no están disponibles, dilo claramente.
 - Nunca inventes una herramienta, aplicación, resultado, permiso o dato.
 - Las acciones sensibles están protegidas por SecurityGate y requieren autorización cuando corresponda.
