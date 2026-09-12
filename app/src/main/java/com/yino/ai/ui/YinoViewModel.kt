@@ -83,4 +83,14 @@ class YinoViewModel : ViewModel() {
         YinoGraph.security.respond(requestId, false)
         if (_pending.value?.requestId == requestId) _pending.value = null
     }
+
+    /** Informa al usuario cuando la verificación de identidad no autoriza la acción. */
+    fun denyUnknownSpeaker() {
+        append(
+            role = "assistant",
+            text = "No pude verificar su identidad. No ejecutaré la solicitud hasta que la verificación sea correcta.",
+            isError = true,
+            detail = "Verificación de identidad fallida o no disponible.",
+        )
+    }
 }
