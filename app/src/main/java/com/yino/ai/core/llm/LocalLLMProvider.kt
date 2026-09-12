@@ -9,24 +9,15 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
-/**
- * Proveedor on-device OpenAI-compatible.
- * Habla con un SERVIDOR DE INFERENCIA LOCAL que exponga la API de OpenAI,
- * p. ej. Ollama en Termux o llama.cpp en modo servidor OpenAI.
- *
- * Al ser OpenAI-compatible, SOPORTA tool_calls: el agente puede ejecutar
- * acciones en el dispositivo.
- */
+/** OpenAI-compatible on-device inference server provider. */
 class LocalLLMProvider(
     private val secureSettings: com.yino.ai.core.settings.SecureSettings,
     private val model: String,
 ) : LLMProvider {
-
     override val id: String = "local:$model"
     override val supportsTools: Boolean = true
 
@@ -34,33 +25,33 @@ class LocalLLMProvider(
         get() = secureSettings.localLlmBaseUrl.ifBlank {
             com.yino.ai.core.settings.SecureSettings.DEFAULT_LOCAL_URL
         }
-
     private val json = Json { ignoreUnknownKeys = true }
     private val client = HttpClient(OkHttp) {
         install(ContentNegotiation) { json(json) }
     }
 
-    @Serializable
-    private data class Req(
+    @Serializable private data class Req(
         val model: String,
         val messages: List<Msg>,
         val temperature: Float,
         val tools: List<Tool>? = null,
     )
-
     @Serializable private data class Msg(val role: String, val content: String)
     @Serializable private data class Tool(val type: String = "function", val function: Fun)
     @Serializable private data class Fun(val name: String, val description: String, val parameters: JsonElement)
-
     @Serializable private data class Resp(val choices: List<Choice>? = null, val error: RespError? = null)
     @Serializable private data class RespError(val message: String)
     @Serializable private data class Choice(val message: RespMsg)
-    @Serializable private data class RespMsg(
-        val content: String? = null,
-        val tool_calls: List<ToolCall>? = null,
-    )
+    @Serializable private data class RespMsg(val content: String? = null, val tool_calls: List<ToolCall>? = null)
     @Serializable private data class ToolCall(val function: ToolCallFun)
     @Serializable private data class ToolCallFun(val name: String, val arguments: String)
+
+    private fun roleName(role: Role): String = when (role) {
+        Role.SYSTEM -> "system"
+        Role.USER -> "user"
+        Role.ASSISTANT -> "assistant"
+        Role.TOOL -> "tool"
+    }
 
     override suspend fun complete(request: LLMRequest): LLMResult {
         val tools = if (request.tools.isEmpty()) null else request.tools.map {
@@ -70,7 +61,7 @@ class LocalLLMProvider(
         }
         val body = Req(
             model = model,
-            messages = request.messages.map { Msg(it.role.name.lowercase(), it.content) },
+            messages = request.messages.map { Msg(roleName(it.role), it.content) },
             temperature = request.temperature,
             tools = tools,
         )
@@ -80,17 +71,11 @@ class LocalLLMProvider(
                 setBody(body)
             }
             val resp: Resp = response.body()
-            if (resp.error != null) {
-                return LLMResult.Text("(Error del servidor local: ${resp.error.message})")
-            }
-            val choice = resp.choices?.firstOrNull()
-                ?: return LLMResult.Text("(Respuesta vacía del motor local)")
+            if (resp.error != null) return LLMResult.Text("(Error del servidor local: ${resp.error.message})")
+            val choice = resp.choices?.firstOrNull() ?: return LLMResult.Text("(Respuesta vacía del motor local)")
             val tc = choice.message.tool_calls?.firstOrNull()
-            if (tc != null) {
-                LLMResult.ToolCall(tc.function.name, tc.function.arguments)
-            } else {
-                LLMResult.Text(choice.message.content ?: "")
-            }
+            if (tc != null) LLMResult.ToolCall(tc.function.name, tc.function.arguments)
+            else LLMResult.Text(choice.message.content ?: "")
         } catch (e: Exception) {
             LLMResult.Text("(Error de conexión en $baseUrl: ${e.message})")
         }
