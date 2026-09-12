@@ -45,6 +45,31 @@ class SecureSettings(context: Context) {
         get() = prefs.getString(KEY_LOCAL_MODEL_PATH, "") ?: ""
         set(value) = prefs.edit().putString(KEY_LOCAL_MODEL_PATH, value).apply()
 
+    /** Exigir autenticación biométrica facial del sistema para acciones protegidas. */
+    var requireFace: Boolean
+        get() = prefs.getBoolean(KEY_REQUIRE_FACE, false)
+        set(value) = prefs.edit().putBoolean(KEY_REQUIRE_FACE, value).apply()
+
+    /** Exigir verificación de voz para acciones protegidas. */
+    var requireVoice: Boolean
+        get() = prefs.getBoolean(KEY_REQUIRE_VOICE, false)
+        set(value) = prefs.edit().putBoolean(KEY_REQUIRE_VOICE, value).apply()
+
+    /** Frase inscrita para la implementación Vosk de verificación de voz. */
+    var enrolledPassphrase: String
+        get() = prefs.getString(KEY_ENROLLED_PASSPHRASE, "") ?: ""
+        set(value) = prefs.edit().putString(KEY_ENROLLED_PASSPHRASE, value).apply()
+
+    /** Ruta del modelo Vosk instalado en el dispositivo. */
+    var voskModelPath: String
+        get() = prefs.getString(KEY_VOSK_MODEL_PATH, "") ?: ""
+        set(value) = prefs.edit().putString(KEY_VOSK_MODEL_PATH, value).apply()
+
+    /** Activar/desactivar la escucha continua por palabra de activación. */
+    var wakeWordEnabled: Boolean
+        get() = prefs.getBoolean(KEY_WAKE_WORD_ENABLED, false)
+        set(value) = prefs.edit().putBoolean(KEY_WAKE_WORD_ENABLED, value).apply()
+
     companion object {
         private const val KEY_API = "llm_api_key"
         private const val KEY_URL = "llm_base_url"
@@ -53,6 +78,11 @@ class SecureSettings(context: Context) {
         private const val KEY_LOCAL_LLM_URL = "local_llm_base_url"
         private const val KEY_LOCAL_MODEL_NAME = "local_model_name"
         private const val KEY_LOCAL_MODEL_PATH = "local_model_path"
+        private const val KEY_REQUIRE_FACE = "require_face"
+        private const val KEY_REQUIRE_VOICE = "require_voice"
+        private const val KEY_ENROLLED_PASSPHRASE = "enrolled_passphrase"
+        private const val KEY_VOSK_MODEL_PATH = "vosk_model_path"
+        private const val KEY_WAKE_WORD_ENABLED = "wake_word_enabled"
 
         const val DEFAULT_URL = "https://api.groq.com/openai/v1/chat/completions"
         const val DEFAULT_MODEL = "llama-3.3-70b-versatile"
