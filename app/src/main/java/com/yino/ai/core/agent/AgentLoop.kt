@@ -12,8 +12,8 @@ import com.yino.ai.core.tools.ToolRegistry
 
 /**
  * Núcleo del agente Yino: Observation -> Plan -> Action -> Verification.
- * Cada resultado de herramienta vuelve al contexto del LLM para que pueda
- * comprobar el resultado, detectar fallos y replantear la siguiente acción.
+ * Conserva el identificador del tool call para que proveedores OpenAI-compatible
+ * puedan recibir la secuencia assistant(tool_call) -> tool(result) correctamente.
  */
 class AgentLoop(
     private val llm: LLMProvider,
@@ -47,10 +47,19 @@ class AgentLoop(
                 }
 
                 is LLMResult.ToolCall -> {
+                    val callId = result.id ?: "yino-call-$step"
+                    history += ChatMessage(
+                        role = Role.ASSISTANT,
+                        content = "",
+                        toolCallId = callId,
+                        toolCallName = result.name,
+                        toolCallArguments = result.argumentsJson,
+                    )
+
                     val tool = registry.get(result.name)
                     if (tool == null) {
                         val msg = "error: herramienta '${result.name}' no existe"
-                        history += ChatMessage(Role.TOOL, msg)
+                        history += ChatMessage(Role.TOOL, msg, toolCallId = callId)
                         lastToolMessage = msg
                         toolFailures++
                         if (toolFailures >= 2) return msg
@@ -66,7 +75,7 @@ class AgentLoop(
                     if (!approved) {
                         AuditLog.record(tool.id, tool.risk.name, false, "denegado")
                         val msg = "Acción denegada por el usuario: ${tool.id}"
-                        history += ChatMessage(Role.TOOL, msg)
+                        history += ChatMessage(Role.TOOL, msg, toolCallId = callId)
                         lastToolMessage = msg
                         return msg
                     }
@@ -75,7 +84,7 @@ class AgentLoop(
                     val res = registry.execute(tool.id, result.argumentsJson, ctx)
                     AuditLog.record(tool.id, tool.risk.name, res.success, res.message)
                     val observation = "[${tool.id}] success=${res.success}: ${res.message}"
-                    history += ChatMessage(Role.TOOL, observation)
+                    history += ChatMessage(Role.TOOL, observation, toolCallId = callId)
                     lastToolMessage = observation
 
                     if (!res.success) {
