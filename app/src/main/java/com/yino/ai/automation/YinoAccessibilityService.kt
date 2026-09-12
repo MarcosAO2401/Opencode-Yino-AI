@@ -93,13 +93,13 @@ class YinoAccessibilityService : AccessibilityService() {
                     node.contentDescription?.toString().orEmpty(),
                     node.viewIdResourceName.orEmpty()
                 )
-                return values.sumOf { value ->
+                return values.map { value ->
                     when {
                         value.equals(h, ignoreCase = true) -> 100
                         value.contains(h, ignoreCase = true) -> 50
                         else -> 0
                     }
-                }
+                }.sum()
             }
 
             val target = candidates.maxByOrNull { score(it) } ?: return@withRoot
