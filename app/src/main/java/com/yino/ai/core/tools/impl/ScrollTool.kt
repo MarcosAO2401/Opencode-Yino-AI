@@ -21,7 +21,14 @@ class ScrollTool : Tool {
         val x = arguments.optDouble("x", 500.0).toFloat()
         val y1 = arguments.optDouble("y1", 1500.0).toFloat()
         val y2 = arguments.optDouble("y2", 500.0).toFloat()
-        svc.swipe(x, y1, x, y2)
-        return ToolResult(true, "Scroll ejecutado de $y1 a $y2")
+        if (!x.isFinite() || !y1.isFinite() || !y2.isFinite() || x < 0f || y1 < 0f || y2 < 0f) {
+            return ToolResult(false, "Coordenadas inválidas para scroll")
+        }
+        val accepted = svc.swipe(x, y1, x, y2)
+        return if (accepted) {
+            ToolResult(true, "Scroll encolado de $y1 a $y2. Debe verificarse el estado posterior de la UI.")
+        } else {
+            ToolResult(false, "No se pudo encolar el scroll")
+        }
     }
 }

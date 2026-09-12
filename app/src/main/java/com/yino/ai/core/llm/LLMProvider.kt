@@ -4,7 +4,13 @@ import kotlinx.coroutines.flow.Flow
 
 enum class Role { SYSTEM, USER, ASSISTANT, TOOL }
 
-data class ChatMessage(val role: Role, val content: String)
+data class ChatMessage(
+    val role: Role,
+    val content: String,
+    val toolCallId: String? = null,
+    val toolCallName: String? = null,
+    val toolCallArguments: String? = null,
+)
 
 data class ToolSpec(
     val name: String,
@@ -20,13 +26,12 @@ data class LLMRequest(
 
 sealed interface LLMResult {
     data class Text(val content: String) : LLMResult
-    data class ToolCall(val name: String, val argumentsJson: String) : LLMResult
+    data class ToolCall(val name: String, val argumentsJson: String, val id: String? = null) : LLMResult
 }
 
 /**
- * Abstracción del "cerebro". Permite intercambiar proveedor cloud
- * (OpenAI-compatible, Gemini, Claude, DeepSeek) por uno local (GGUF
- * vía llama.cpp / AiKit) sin tocar el resto del sistema.
+ * Abstracción del cerebro. Permite intercambiar proveedores OpenAI-compatible
+ * y proveedores locales sin tocar el resto del sistema.
  */
 interface LLMProvider {
     val id: String

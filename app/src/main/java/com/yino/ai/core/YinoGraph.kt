@@ -1,6 +1,9 @@
 package com.yino.ai.core
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import com.yino.ai.automation.YinoAccessibilityService
 import com.yino.ai.core.agent.AgentLoop
 import com.yino.ai.core.llm.CloudLLMProvider
@@ -13,63 +16,30 @@ import com.yino.ai.core.security.SecurityGate
 import com.yino.ai.core.security.AuditLog
 import com.yino.ai.core.settings.SecureSettings
 import com.yino.ai.core.tools.ToolRegistry
-import com.yino.ai.core.tools.impl.BackTool
-import com.yino.ai.core.tools.impl.GoHomeTool
-import com.yino.ai.core.tools.impl.OpenAppTool
-import com.yino.ai.core.tools.impl.ReadNotificationsTool
-import com.yino.ai.core.tools.impl.ReadScreenTool
-import com.yino.ai.core.tools.impl.ScrollTool
-import com.yino.ai.core.tools.impl.SendMessageTool
-import com.yino.ai.core.tools.impl.SetAlarmTool
-import com.yino.ai.core.tools.impl.SetTimerTool
-import com.yino.ai.core.tools.impl.AddCalendarEventTool
-import com.yino.ai.core.tools.impl.CallTool
-import com.yino.ai.core.tools.impl.OpenUrlTool
-import com.yino.ai.core.tools.impl.PlayMusicTool
-import com.yino.ai.core.tools.impl.SendEmailTool
-import com.yino.ai.core.tools.impl.SetVolumeTool
-import com.yino.ai.core.tools.impl.TakePhotoTool
-import com.yino.ai.core.tools.impl.TapTool
-import com.yino.ai.core.tools.impl.UiClickTool
-import com.yino.ai.core.tools.impl.UiTypeTool
-import com.yino.ai.core.tools.impl.UiWaitTool
-import com.yino.ai.core.tools.impl.WebSearchTool
-import com.yino.ai.core.tools.impl.NotificationReplyTool
+import com.yino.ai.core.tools.impl.*
 import com.yino.ai.data.memory.MemoryRepository
 import com.yino.ai.voice.AndroidTtsProvider
 import com.yino.ai.voice.TTSProvider
 
 object YinoGraph {
     private var _appContext: Context? = null
-    val appContext: Context
-        get() = _appContext ?: throw IllegalStateException("YinoGraph not initialized. Call init() first.")
-    val isInitialized: Boolean
-        get() = _appContext != null
+    val appContext: Context get() = _appContext ?: throw IllegalStateException("YinoGraph not initialized. Call init() first.")
+    val isInitialized: Boolean get() = _appContext != null
 
-    lateinit var secure: SecureSettings
-        private set
-    lateinit var llm: LLMProvider
-        private set
+    lateinit var secure: SecureSettings; private set
+    lateinit var llm: LLMProvider; private set
     val registry: ToolRegistry = ToolRegistry()
     val security: SecurityGate = SecurityGate()
-    lateinit var identity: IdentityGate
-        private set
-    lateinit var memory: MemoryRepository
-        private set
-    lateinit var tts: TTSProvider
-        private set
-    lateinit var agent: AgentLoop
-        private set
+    lateinit var identity: IdentityGate; private set
+    lateinit var memory: MemoryRepository; private set
+    lateinit var tts: TTSProvider; private set
+    lateinit var agent: AgentLoop; private set
 
     fun init(context: Context) {
         if (isInitialized) return
         _appContext = context.applicationContext
         secure = SecureSettings(appContext)
-        identity = IdentityGate(
-            face = SystemBiometricFaceAuth(),
-            voice = VoskPassphraseVoiceAuth(secure),
-            secure = secure,
-        )
+        identity = IdentityGate(face = SystemBiometricFaceAuth(), voice = VoskPassphraseVoiceAuth(secure), secure = secure)
         AuditLog.init(appContext)
         memory = MemoryRepository(appContext)
         tts = AndroidTtsProvider(appContext)
@@ -78,84 +48,49 @@ object YinoGraph {
     }
 
     private fun registerTools() {
-        registry.register(OpenAppTool(appContext))
-        registry.register(SendMessageTool(appContext))
-        registry.register(WebSearchTool(appContext))
-        registry.register(SetAlarmTool(appContext))
-        registry.register(SetTimerTool(appContext))
-        registry.register(AddCalendarEventTool(appContext))
-        registry.register(OpenUrlTool(appContext))
-        registry.register(SetVolumeTool(appContext))
-        registry.register(TakePhotoTool(appContext))
-        registry.register(CallTool(appContext))
-        registry.register(SendEmailTool(appContext))
-        registry.register(PlayMusicTool(appContext))
-        registry.register(NotificationReplyTool(appContext))
-        registry.register(GoHomeTool())
-        registry.register(BackTool())
-        registry.register(ReadScreenTool())
-        registry.register(ReadNotificationsTool())
-        registry.register(ScrollTool())
-        registry.register(TapTool())
-        registry.register(UiClickTool())
-        registry.register(UiTypeTool())
-        registry.register(UiWaitTool())
+        registry.register(OpenAppTool(appContext)); registry.register(SendMessageTool(appContext)); registry.register(WebSearchTool(appContext))
+        registry.register(SetAlarmTool(appContext)); registry.register(SetTimerTool(appContext)); registry.register(AddCalendarEventTool(appContext))
+        registry.register(OpenUrlTool(appContext)); registry.register(SetVolumeTool(appContext)); registry.register(TakePhotoTool(appContext))
+        registry.register(CallTool(appContext)); registry.register(SendEmailTool(appContext)); registry.register(PlayMusicTool(appContext))
+        registry.register(NotificationReplyTool(appContext)); registry.register(GoHomeTool()); registry.register(BackTool()); registry.register(ReadScreenTool())
+        registry.register(ReadNotificationsTool()); registry.register(ScrollTool()); registry.register(TapTool()); registry.register(UiFindAndClickTool()); registry.register(UiClickTool())
+        registry.register(UiTypeTool()); registry.register(UiWaitTool())
+    }
+
+    private fun grantedRuntimePermissions(): Set<String> {
+        val candidates = setOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.POST_NOTIFICATIONS,
+            Manifest.permission.READ_CONTACTS, Manifest.permission.READ_PHONE_STATE, Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS)
+        return candidates.filterTo(linkedSetOf()) { ContextCompat.checkSelfPermission(appContext, it) == PackageManager.PERMISSION_GRANTED }
     }
 
     private fun rebuildLlm() {
-        llm = if (secure.useLocalLlm) {
-            LocalLLMProvider(
-                secure,
-                secure.localModelName.ifBlank { SecureSettings.DEFAULT_LOCAL_MODEL }
+        llm = when {
+            secure.useLocalLlm -> LocalLLMProvider(secure, secure.localModelName.ifBlank { SecureSettings.DEFAULT_LOCAL_MODEL })
+            secure.useNvidiaNemotron -> CloudLLMProvider(
+                baseUrl = secure.nvidiaBaseUrl.ifBlank { SecureSettings.DEFAULT_NVIDIA_URL },
+                apiKeyParam = secure.nvidiaApiKey,
+                model = secure.nvidiaModel.ifBlank { SecureSettings.DEFAULT_NVIDIA_MODEL },
             )
-        } else {
-            CloudLLMProvider(
+            else -> CloudLLMProvider(
                 baseUrl = secure.llmBaseUrl.ifBlank { SecureSettings.DEFAULT_URL },
                 apiKeyParam = secure.apiKey,
                 model = secure.llmModel.ifBlank { SecureSettings.DEFAULT_MODEL },
             )
         }
-        agent = AgentLoop(
-            llm,
-            registry,
-            security,
+        agent = AgentLoop(llm, registry, security,
             accessibilityAvailable = { YinoAccessibilityService.isEnabled() },
-            grantedPermissions = { emptySet() },
-        )
+            grantedPermissions = { grantedRuntimePermissions() })
     }
 
-    fun setApiKey(key: String) {
-        secure.apiKey = key
-        if (!secure.useLocalLlm) rebuildLlm()
-    }
-
-    fun setLlmBaseUrl(url: String) {
-        secure.llmBaseUrl = url
-        if (!secure.useLocalLlm) rebuildLlm()
-    }
-
-    fun setLlmModel(model: String) {
-        secure.llmModel = model
-        if (!secure.useLocalLlm) rebuildLlm()
-    }
-
-    fun setUseLocalLlm(use: Boolean) {
-        secure.useLocalLlm = use
-        rebuildLlm()
-    }
-
-    fun setLocalModelPath(path: String) {
-        secure.localModelPath = path
-        if (secure.useLocalLlm) rebuildLlm()
-    }
-
-    fun setLocalModelName(name: String) {
-        secure.localModelName = name
-        if (secure.useLocalLlm) rebuildLlm()
-    }
-
-    fun setLocalLlmBaseUrl(url: String) {
-        secure.localLlmBaseUrl = url
-        if (secure.useLocalLlm) rebuildLlm()
-    }
+    fun setApiKey(key: String) { secure.apiKey = key; if (!secure.useLocalLlm && !secure.useNvidiaNemotron) rebuildLlm() }
+    fun setLlmBaseUrl(url: String) { secure.llmBaseUrl = url; if (!secure.useLocalLlm && !secure.useNvidiaNemotron) rebuildLlm() }
+    fun setLlmModel(model: String) { secure.llmModel = model; if (!secure.useLocalLlm && !secure.useNvidiaNemotron) rebuildLlm() }
+    fun setUseLocalLlm(use: Boolean) { secure.useLocalLlm = use; rebuildLlm() }
+    fun setNvidiaNemotronEnabled(enabled: Boolean) { secure.useNvidiaNemotron = enabled; if (enabled) secure.useLocalLlm = false; rebuildLlm() }
+    fun setNvidiaApiKey(key: String) { secure.nvidiaApiKey = key; if (secure.useNvidiaNemotron) rebuildLlm() }
+    fun setNvidiaModel(model: String) { secure.nvidiaModel = model; if (secure.useNvidiaNemotron) rebuildLlm() }
+    fun setNvidiaBaseUrl(url: String) { secure.nvidiaBaseUrl = url; if (secure.useNvidiaNemotron) rebuildLlm() }
+    fun setLocalModelPath(path: String) { secure.localModelPath = path; if (secure.useLocalLlm) rebuildLlm() }
+    fun setLocalModelName(name: String) { secure.localModelName = name; if (secure.useLocalLlm) rebuildLlm() }
+    fun setLocalLlmBaseUrl(url: String) { secure.localLlmBaseUrl = url; if (secure.useLocalLlm) rebuildLlm() }
 }

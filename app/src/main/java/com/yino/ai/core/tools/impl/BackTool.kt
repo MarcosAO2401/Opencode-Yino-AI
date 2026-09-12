@@ -16,9 +16,15 @@ class BackTool : Tool {
     override val requiredPermissions = emptyList<String>()
 
     override suspend fun execute(arguments: JSONObject, ctx: ToolContext): ToolResult {
+        val svc = YinoAccessibilityService.instance()
+            ?: return ToolResult(false, "Accesibilidad no disponible")
         return try {
-            YinoAccessibilityService.instance()?.global(AccessibilityService.GLOBAL_ACTION_BACK)
-            ToolResult(true, "Back")
+            val accepted = svc.global(AccessibilityService.GLOBAL_ACTION_BACK)
+            if (accepted) {
+                ToolResult(true, "Back encolado para ejecución. Debe verificarse el estado posterior de la UI.")
+            } else {
+                ToolResult(false, "No se pudo encolar la acción Back")
+            }
         } catch (e: Exception) {
             ToolResult(false, e.message ?: "error")
         }

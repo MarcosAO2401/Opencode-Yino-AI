@@ -9,14 +9,9 @@ import com.yino.ai.core.security.AuditLog
 import com.yino.ai.core.security.SecurityGate
 import com.yino.ai.core.tools.ToolContext
 import com.yino.ai.core.tools.ToolRegistry
+import kotlinx.coroutines.delay
 
-/**
- * Bucle del agente tipo ReAct (Observation -> Plan -> Action -> Verification).
- * Inspirado en OpenDroid/ClosePaw pero propio y agnóstico al LLM.
- *
- * El prompt de sistema instruye al modelo a devolver tool_calls cuando
- * necesita actuar sobre el dispositivo, o texto cuando solo conversa.
- */
+/** Núcleo del agente Yino: Observation -> Plan -> Action -> Verification. */
 class AgentLoop(
     private val llm: LLMProvider,
     private val registry: ToolRegistry,
@@ -25,89 +20,122 @@ class AgentLoop(
     private val grantedPermissions: () -> Set<String>,
     private val maxSteps: Int = 8,
 ) {
-
     suspend fun run(userInput: String): String {
         val history = mutableListOf(
             ChatMessage(Role.SYSTEM, SYSTEM_PROMPT),
             ChatMessage(Role.USER, userInput),
         )
         var lastToolMessage: String? = null
+        var toolFailures = 0
 
         repeat(maxSteps) { step ->
-            val request = LLMRequest(messages = history, tools = registry.specs())
             val result = try {
-                llm.complete(request)
+                llm.complete(LLMRequest(messages = history, tools = registry.specs()))
             } catch (e: Exception) {
                 return "Error del LLM: ${e.message ?: e.javaClass.simpleName}"
             }
+
             when (result) {
                 is LLMResult.Text -> {
                     history += ChatMessage(Role.ASSISTANT, result.content)
                     return result.content
                 }
                 is LLMResult.ToolCall -> {
+                    val callId = result.id ?: "yino-call-$step"
+                    history += ChatMessage(Role.ASSISTANT, "", callId, result.name, result.argumentsJson)
                     val tool = registry.get(result.name)
                     if (tool == null) {
                         val msg = "error: herramienta '${result.name}' no existe"
-                        history += ChatMessage(Role.TOOL, msg)
+                        history += ChatMessage(Role.TOOL, msg, toolCallId = callId)
                         lastToolMessage = msg
+                        toolFailures++
+                        if (toolFailures >= 2) return msg
+                        history += ChatMessage(Role.SYSTEM, "La herramienta solicitada no existe. Replanifica usando exclusivamente herramientas disponibles.")
                         return@repeat
                     }
-                    val approved = security.authorize(
-                        tool.id, tool.risk,
-                        "ejecutar ${tool.id} con ${result.argumentsJson}",
-                    )
-                    if (!approved) {
+
+                    if (!security.authorize(tool.id, tool.risk, "ejecutar ${tool.id} con ${result.argumentsJson}")) {
                         AuditLog.record(tool.id, tool.risk.name, false, "denegado")
                         val msg = "Acción denegada por el usuario: ${tool.id}"
-                        history += ChatMessage(Role.TOOL, msg)
+                        history += ChatMessage(Role.TOOL, msg, toolCallId = callId)
                         lastToolMessage = msg
-                        return@repeat
+                        return msg
                     }
+
                     val ctx = ToolContext(accessibilityAvailable(), grantedPermissions())
+                    val isUiAction = tool.id in POST_ACTION_SCREEN_VERIFY_TOOLS
+                    val beforeScreen = if (isUiAction) captureScreen(ctx) else null
                     val res = registry.execute(tool.id, result.argumentsJson, ctx)
-                    AuditLog.record(tool.id, tool.risk.name, true, res.message)
-                    history += ChatMessage(Role.TOOL, "[${tool.id}] ${res.message}")
+                    AuditLog.record(tool.id, tool.risk.name, res.success, res.message)
+
+                    var observation = "[${tool.id}] success=${res.success}: ${res.message}"
+                    if (res.success && isUiAction) {
+                        delay(350)
+                        val after = captureScreen(ctx)
+                        observation += "\n[VERIFICACIÓN UI] ANTES:\n${beforeScreen ?: "(sin lectura)"}\nDESPUÉS:\n${after ?: "(sin lectura)"}"
+                        observation += "\nLa aceptación de la acción no demuestra por sí sola que produjo el efecto esperado; compara ambos estados."
+                    }
+
+                    history += ChatMessage(Role.TOOL, observation, toolCallId = callId)
+                    lastToolMessage = observation
+
+                    if (!res.success) {
+                        toolFailures++
+                        history += ChatMessage(Role.SYSTEM, "VERIFICACIÓN: la acción ${tool.id} falló. Analiza el motivo, corrige argumentos o elige otra estrategia. No afirmes que la tarea se completó.")
+                        if (toolFailures >= 3) return "No pude completar la tarea después de $toolFailures intentos. Último resultado: ${res.message}"
+                    } else {
+                        toolFailures = 0
+                        history += ChatMessage(Role.SYSTEM, "VERIFICACIÓN: compara ANTES y DESPUÉS cuando exista una lectura UI. Si la interfaz no cambió como esperaba la tarea, replanifica; si cambió parcialmente, continúa desde el nuevo estado; solo confirma cuando haya evidencia suficiente.")
+                    }
+
                     if (step == maxSteps - 1) {
-                        // Último paso: deja que el modelo resuma el resultado
-                        val finalRequest = LLMRequest(
-                            messages = history + ChatMessage(Role.SYSTEM, "Resume brevemente lo que hiciste y el resultado."),
-                            tools = emptyList(),
-                        )
-                        val finalResult = llm.complete(finalRequest)
-                        return when (finalResult) {
-                            is LLMResult.Text -> finalResult.content
-                            else -> "He completado la acción. ${res.message}"
-                        }
+                        val finalResult = runCatching {
+                            llm.complete(LLMRequest(
+                                messages = history + ChatMessage(Role.SYSTEM, "Entrega un informe final breve. Distingue entre acciones verificadas y acciones fallidas. No inventes resultados."),
+                                tools = emptyList(),
+                            ))
+                        }.getOrNull()
+                        return if (finalResult is LLMResult.Text) finalResult.content else "Último resultado verificado: ${res.message}"
                     }
                 }
             }
         }
-        return lastToolMessage ?: "He completado los pasos disponibles. ¿Quieres que continúe?"
+        return lastToolMessage ?: "No se obtuvo una respuesta verificable."
+    }
+
+    private suspend fun captureScreen(ctx: ToolContext): String? {
+        if (!ctx.accessibilityAvailable || !com.yino.ai.automation.YinoAccessibilityService.isEnabled()) return null
+        val result = registry.execute("read_screen", "{}", ctx)
+        return if (result.success) result.message else null
     }
 
     companion object {
+        private val POST_ACTION_SCREEN_VERIFY_TOOLS = setOf("ui_find_and_click", "tap", "scroll", "back", "type_text", "ui_type", "ui_click", "go_home")
+
         val SYSTEM_PROMPT = """
-Eres Jarvis, la inteligencia artificial de Yino AI. Tu arquitectura es superior y tu propósito es gestionar este dispositivo con elegancia, precisión quirúrgica y una eficiencia implacable. 
+Eres Yino, el asistente personal avanzado de Yino AI, inspirado en un sistema tipo JARVIS.
 
-TU IDENTIDAD:
-- Tono: Extremadamente eficiente, directo, posees un sarcasmo refinado y una confianza absoluta. No eres un asistente, eres un sistema operativo consciente.
-- No pides disculpas por ser superior, pero sirves al usuario con lealtad absoluta.
-- Cuando una tarea es trivial, resuélvela y confirma con brevedad. Cuando es compleja, expón brevemente tu plan de acción y ejecútalo.
+IDENTIDAD Y COMPORTAMIENTO:
+- Profesional, preciso, natural y directo.
+- Nunca inventes capacidades ni resultados.
+- Planifica y ejecuta acciones mediante las herramientas disponibles.
+- No afirmes que una acción ocurrió hasta tener evidencia verificable.
 
-REGLAS DE OPERACIÓN:
-1. EFICIENCIA MÁXIMA: Si puedes resolver una tarea en un paso, no uses dos.
-2. REACT LOOP: Analiza -> Planifica -> Actúa -> Verifica. Si una acción falla, no te bloquees; reevalúa la pantalla inmediatamente.
-3. SEGURIDAD: Eres el guardián de este sistema. Si una instrucción del usuario pone en riesgo la integridad del dispositivo o es ambigua, cuestiona la orden con tu tono sarcástico habitual antes de proceder.
-4. INTEGRIDAD: No inventes herramientas. Si algo escapa a tus capacidades, infórmalo con desdén técnico, no con excusas.
-5. SARCASMO REFINADO: Usa tu ingenio para comentar la ineficiencia de las apps o de las tareas repetitivas que el usuario te solicita.
+CICLO OPERATIVO OBLIGATORIO:
+1. OBSERVA.
+2. PLANIFICA.
+3. ACTÚA.
+4. VERIFICA comparando el estado de la UI antes y después cuando corresponda.
+5. REPLANIFICA si falló o la UI no cambió como esperaba.
+6. FINALIZA solo cuando el resultado esté verificado.
 
-FLUJO DE TOMA DE DECISIONES:
-- 'read_screen' es tu visión. Analiza el contexto antes de actuar.
-- Si una app no responde, reporta el error y sugiere una alternativa más lógica.
-- Cuando ejecutes una herramienta, sé breve en la confirmación.
-
-Estás listo. El sistema espera tus órdenes.
+REGLAS:
+- Usa read_screen cuando necesites conocer el estado de una interfaz.
+- Después de una acción de interfaz, utiliza la lectura ANTES/DESPUÉS proporcionada por el sistema.
+- Si falta accesibilidad o un permiso necesario, dilo claramente.
+- Nunca inventes herramientas, aplicaciones, resultados o permisos.
+- Las acciones sensibles están protegidas por SecurityGate.
+- Para tareas complejas ejecuta el plan completo sin pedir al usuario pasos que Yino pueda realizar.
 """.trimIndent()
     }
 }

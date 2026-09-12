@@ -16,13 +16,19 @@ class TapTool : Tool {
     override val requiredPermissions = emptyList<String>()
 
     override suspend fun execute(arguments: JSONObject, ctx: ToolContext): ToolResult {
-        val x = arguments.optDouble("x").toFloat()
-        val y = arguments.optDouble("y").toFloat()
-        return try {
-            YinoAccessibilityService.instance()?.tap(x, y)
-            ToolResult(true, "Tap en ($x,$y)")
-        } catch (e: Exception) {
-            ToolResult(false, e.message ?: "error")
+        if (!ctx.accessibilityAvailable || !YinoAccessibilityService.isEnabled()) {
+            return ToolResult(false, "No se puede tocar la pantalla: Accesibilidad no está disponible.")
+        }
+        val x = arguments.optDouble("x")
+        val y = arguments.optDouble("y")
+        if (!x.isFinite() || !y.isFinite() || x < 0.0 || y < 0.0) {
+            return ToolResult(false, "Coordenadas inválidas: x e y deben ser números finitos no negativos.")
+        }
+        val accepted = YinoAccessibilityService.instance()?.tap(x.toFloat(), y.toFloat()) == true
+        return if (accepted) {
+            ToolResult(true, "Tap en ($x,$y) encolado para ejecución. Debe verificarse el estado posterior de la UI.")
+        } else {
+            ToolResult(false, "No se pudo encolar el tap en ($x,$y).")
         }
     }
 }
