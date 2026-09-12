@@ -12,6 +12,7 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.coroutines.delay
 import kotlin.math.pow
 
@@ -19,10 +20,10 @@ import kotlin.math.pow
  * Proveedor cloud compatible con la API de OpenAI (funciona con Gemini,
  * DeepSeek, Together, Groq, etc. cambiando baseUrl + header).
  * Implementación real y compilable; la API key se gestiona en Settings.
- * 
+ *
  * Características:
  * - Retry exponencial con backoff para errores transitorios
- * - Timeout configurable
+ * - Timeout configurable por la implementación HTTP
  * - Compatible OpenAI API (tools, system prompts)
  */
 class CloudLLMProvider(
@@ -43,10 +44,6 @@ class CloudLLMProvider(
         install(ContentNegotiation) { json(json) }
     }
 
-    /** API key del proveedor. Se puede actualizar en runtime desde Settings. */
-    var apiKey: String = apiKeyParam
-        private set
-
     @Serializable
     private data class Req(
         val model: String,
@@ -58,7 +55,7 @@ class CloudLLMProvider(
 
     @Serializable private data class Msg(val role: String, val content: String)
     @Serializable private data class Tool(val type: String = "function", val function: Fun)
-    @Serializable private data class Fun(val name: String, val description: String, val parameters: String)
+    @Serializable private data class Fun(val name: String, val description: String, val parameters: JsonElement)
 
     @Serializable private data class Resp(val choices: List<Choice>)
     @Serializable private data class Choice(val message: RespMsg, val finish_reason: String?)
@@ -96,7 +93,9 @@ class CloudLLMProvider(
         while (true) {
             try {
                 val tools = if (request.tools.isEmpty()) null else request.tools.map {
-                    Tool(function = Fun(it.name, it.description, it.parametersJsonSchema))
+                    val parameters = runCatching { json.parseToJsonElement(it.parametersJsonSchema) }
+                        .getOrElse { return LLMResult.Text("(Esquema JSON inválido para la herramienta ${it.name})") }
+                    Tool(function = Fun(it.name, it.description, parameters))
                 }
                 val body = Req(
                     model = model,
