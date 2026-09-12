@@ -6,25 +6,21 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 
 /**
  * Proveedor on-device OpenAI-compatible.
- * Habla con un SERVIDOR DE INFERENCIA
- * LOCAL que exponga la API de OpenAI, p. ej.:
- * - Ollama en Termux: http://127.0.0.1:11434/v1/chat/completions
- * - llama.cpp en modo servidor OpenAI: http://127.0.0.1:8080/v1/chat/completions
+ * Habla con un SERVIDOR DE INFERENCIA LOCAL que exponga la API de OpenAI,
+ * p. ej. Ollama en Termux o llama.cpp en modo servidor OpenAI.
  *
- * Al ser OpenAI-compatible, SOPORTA tool_calls: el agente ReAct puede ejecutar
- * acciones (tocar la pantalla, enviar mensajes) 100% en el dispositivo.
- *
- * Ventajas: privado (el texto nunca sale del telefono) y sin API key ni cuota.
+ * Al ser OpenAI-compatible, SOPORTA tool_calls: el agente puede ejecutar
+ * acciones en el dispositivo.
  */
 class LocalLLMProvider(
     private val secureSettings: com.yino.ai.core.settings.SecureSettings,
@@ -34,9 +30,10 @@ class LocalLLMProvider(
     override val id: String = "local:$model"
     override val supportsTools: Boolean = true
 
-    // Leer URL dinámicamente cada vez
-    private val baseUrl: String 
-        get() = secureSettings.localLlmBaseUrl.ifBlank { com.yino.ai.core.settings.SecureSettings.DEFAULT_LOCAL_URL }
+    private val baseUrl: String
+        get() = secureSettings.localLlmBaseUrl.ifBlank {
+            com.yino.ai.core.settings.SecureSettings.DEFAULT_LOCAL_URL
+        }
 
     private val json = Json { ignoreUnknownKeys = true }
     private val client = HttpClient(OkHttp) {
@@ -53,7 +50,7 @@ class LocalLLMProvider(
 
     @Serializable private data class Msg(val role: String, val content: String)
     @Serializable private data class Tool(val type: String = "function", val function: Fun)
-    @Serializable private data class Fun(val name: String, val description: String, val parameters: String)
+    @Serializable private data class Fun(val name: String, val description: String, val parameters: JsonElement)
 
     @Serializable private data class Resp(val choices: List<Choice>? = null, val error: RespError? = null)
     @Serializable private data class RespError(val message: String)
@@ -67,7 +64,9 @@ class LocalLLMProvider(
 
     override suspend fun complete(request: LLMRequest): LLMResult {
         val tools = if (request.tools.isEmpty()) null else request.tools.map {
-            Tool(function = Fun(it.name, it.description, it.parametersJsonSchema))
+            val parameters = runCatching { json.parseToJsonElement(it.parametersJsonSchema) }
+                .getOrElse { return LLMResult.Text("(Esquema JSON inválido para la herramienta ${it.name})") }
+            Tool(function = Fun(it.name, it.description, parameters))
         }
         val body = Req(
             model = model,
@@ -80,16 +79,12 @@ class LocalLLMProvider(
                 contentType(ContentType.Application.Json)
                 setBody(body)
             }
-            
             val resp: Resp = response.body()
-            
             if (resp.error != null) {
-                return LLMResult.Text("(Error del servidor Ollama: ${resp.error.message})")
+                return LLMResult.Text("(Error del servidor local: ${resp.error.message})")
             }
-
             val choice = resp.choices?.firstOrNull()
                 ?: return LLMResult.Text("(Respuesta vacía del motor local)")
-            
             val tc = choice.message.tool_calls?.firstOrNull()
             if (tc != null) {
                 LLMResult.ToolCall(tc.function.name, tc.function.arguments)
