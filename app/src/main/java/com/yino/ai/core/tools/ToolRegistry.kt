@@ -18,8 +18,8 @@ class ToolRegistry {
         try {
             val schemaNode = com.fasterxml.jackson.databind.ObjectMapper().readTree(tool.parametersJsonSchema)
             schemas[tool.id] = schemaFactory.getSchema(schemaNode)
-        } catch (e: Exception) {
-            // Schema parsing failed, skip validation for this tool
+        } catch (_: Exception) {
+            // Un esquema inválido no debe derribar el registro completo de herramientas.
         }
     }
 
@@ -33,8 +33,15 @@ class ToolRegistry {
 
     suspend fun execute(id: String, argumentsJson: String, ctx: ToolContext): ToolResult {
         val tool = tools[id] ?: return ToolResult(false, "herramienta desconocida (no existe): $id")
-        
-        // Validate arguments against JSON schema
+
+        val missingPermissions = tool.requiredPermissions.filterNot { it in ctx.permissions }
+        if (missingPermissions.isNotEmpty()) {
+            return ToolResult(
+                false,
+                "No se puede ejecutar $id: faltan permisos requeridos (${missingPermissions.joinToString()}).",
+            )
+        }
+
         val schema = schemas[id]
         if (schema != null) {
             try {
@@ -49,6 +56,6 @@ class ToolRegistry {
         }
 
         return runCatching { tool.execute(JSONObject(argumentsJson), ctx) }
-            .getOrDefault(ToolResult(false, "error ejecutando $id"))
+            .getOrElse { e -> ToolResult(false, "Error ejecutando $id: ${e.message ?: e.javaClass.simpleName}") }
     }
 }
