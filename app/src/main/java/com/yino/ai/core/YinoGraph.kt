@@ -1,6 +1,9 @@
 package com.yino.ai.core
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import com.yino.ai.automation.YinoAccessibilityService
 import com.yino.ai.core.agent.AgentLoop
 import com.yino.ai.core.llm.CloudLLMProvider
@@ -102,6 +105,26 @@ object YinoGraph {
         registry.register(UiWaitTool())
     }
 
+    /**
+     * Returns the Android dangerous/runtime permissions currently granted to Yino.
+     * Special access such as Accessibility is intentionally handled separately by
+     * [accessibilityAvailable], because it is not a normal runtime permission.
+     */
+    private fun grantedRuntimePermissions(): Set<String> {
+        val candidates = setOf(
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.POST_NOTIFICATIONS,
+            Manifest.permission.READ_CONTACTS,
+            Manifest.permission.READ_PHONE_STATE,
+            Manifest.permission.SEND_SMS,
+            Manifest.permission.RECEIVE_SMS,
+        )
+        return candidates.filterTo(linkedSetOf()) {
+            ContextCompat.checkSelfPermission(appContext, it) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
     private fun rebuildLlm() {
         llm = if (secure.useLocalLlm) {
             LocalLLMProvider(
@@ -120,7 +143,7 @@ object YinoGraph {
             registry,
             security,
             accessibilityAvailable = { YinoAccessibilityService.isEnabled() },
-            grantedPermissions = { emptySet() },
+            grantedPermissions = { grantedRuntimePermissions() },
         )
     }
 
