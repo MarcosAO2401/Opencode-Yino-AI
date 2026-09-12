@@ -56,8 +56,8 @@ class YinoAccessibilityService : AccessibilityService() {
 
     /**
      * Busca el primer nodo cuya etiqueta (texto o contentDescription) contenga
-     * [text] y hace clic en él (o en su ancestro clickable). Devuelve true si
-     * encontró y disparó el clic. Se usa para manejar cualquier app por nombre.
+     * [text] y hace clic en él (o en su ancestro clickable).
+     * Devuelve true solo si Android acepta realmente ACTION_CLICK.
      */
     fun findAndClick(text: String): Boolean {
         if (!ensureExecutor()) return false
@@ -69,10 +69,10 @@ class YinoAccessibilityService : AccessibilityService() {
                 val label =
                     (node.text?.toString().orEmpty()) + " " + (node.contentDescription?.toString().orEmpty())
                 if (label.contains(text, ignoreCase = true)) {
-                    var t: AccessibilityNodeInfo? = node
-                    while (t != null && !t.isClickable) t = t.parent
-                    (t ?: node).performAction(ACTION_CLICK)
-                    return true
+                    var target: AccessibilityNodeInfo? = node
+                    while (target != null && !target.isClickable) target = target.parent
+                    clicked = (target ?: node).performAction(ACTION_CLICK)
+                    return clicked
                 }
                 for (i in 0 until node.childCount) {
                     if (dfs(node.getChild(i))) return true
@@ -86,7 +86,7 @@ class YinoAccessibilityService : AccessibilityService() {
 
     /**
      * Escribe [text] en el primer campo editable visible (buscador, caja de
-     * mensaje, etc.). Devuelve true si encontró un campo y envió el texto.
+     * mensaje, etc.). Devuelve true solo si Android acepta ACTION_SET_TEXT.
      */
     fun findEditableAndType(text: String): Boolean {
         if (!ensureExecutor()) return false
@@ -99,7 +99,8 @@ class YinoAccessibilityService : AccessibilityService() {
                     val b = Bundle().apply {
                         putCharSequence(ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
                     }
-                    return node.performAction(ACTION_SET_TEXT, b)
+                    ok = node.performAction(ACTION_SET_TEXT, b)
+                    return ok
                 }
                 for (i in 0 until node.childCount) {
                     if (dfs(node.getChild(i))) return true
