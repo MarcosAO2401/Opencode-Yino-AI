@@ -10,8 +10,9 @@ import org.json.JSONObject
 
 /**
  * Busca un control visible por texto, contentDescription o resource-id y lo pulsa.
- * La acción se acepta solo si AccessibilityNodeInfo.performAction devuelve true.
- * El AgentLoop debe releer la pantalla para verificar el efecto real.
+ * Primero intenta el nodo encontrado y, si no es clickable, sus ancestros visibles.
+ * ACTION_CLICK aceptado significa que Android aceptó la acción; el AgentLoop debe
+ * releer la pantalla para verificar el efecto real.
  */
 class UiFindAndClickTool : Tool {
     override val id = "ui_find_and_click"
@@ -40,7 +41,6 @@ class UiFindAndClickTool : Tool {
         val root = YinoAccessibilityService.instance()?.root()
             ?: return ToolResult(false, "No hay árbol de accesibilidad disponible.")
 
-        var found = 0
         var matchedNode: AccessibilityNodeInfo? = null
 
         fun matches(value: CharSequence?): Boolean {
@@ -60,14 +60,18 @@ class UiFindAndClickTool : Tool {
                 (idMatch && matches(node.viewIdResourceName))
 
             if (matched && node.isVisibleToUser && node.isEnabled) {
-                found++
                 matchedNode = AccessibilityNodeInfo.obtain(node)
                 return
             }
 
             for (i in 0 until node.childCount) {
                 if (matchedNode != null) break
-                walk(node.getChild(i))
+                val child = node.getChild(i)
+                try {
+                    walk(child)
+                } finally {
+                    child?.recycle()
+                }
             }
         }
 
@@ -79,16 +83,29 @@ class UiFindAndClickTool : Tool {
 
         val node = matchedNode ?: return ToolResult(false, "No encontré un elemento visible que coincida con '$query'.")
         return try {
-            val clickable = node.isClickable
-            val accepted = if (clickable) {
-                node.performAction(AccessibilityNodeInfo.ACTION_CLICK)
-            } else {
-                false
+            var cursor: AccessibilityNodeInfo? = node
+            var accepted = false
+            var clickedLevel = 0
+
+            try {
+                while (cursor != null && clickedLevel <= 8) {
+                    if (cursor.isVisibleToUser && cursor.isEnabled && cursor.isClickable) {
+                        accepted = cursor.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+                        if (accepted) break
+                    }
+                    val parent = cursor.parent
+                    if (cursor !== node) cursor.recycle()
+                    cursor = parent
+                    clickedLevel++
+                }
+            } finally {
+                cursor?.recycle()
             }
+
             if (accepted) {
-                ToolResult(true, "Elemento encontrado y click aceptado para '$query'. Relee la pantalla para verificar el resultado.")
+                ToolResult(true, "Elemento encontrado y click aceptado para '$query' (nivel=$clickedLevel). Relee la pantalla para verificar el resultado.")
             } else {
-                ToolResult(false, "Encontré '$query', pero Android no aceptó ACTION_CLICK (clickable=$clickable).")
+                ToolResult(false, "Encontré '$query', pero ningún nodo ni ancestro clickable aceptó ACTION_CLICK.")
             }
         } finally {
             node.recycle()
