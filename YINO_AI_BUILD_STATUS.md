@@ -1,64 +1,69 @@
 # Yino AI — Build Status
 
-## 2026-09-12 — Initial direct inspection
+## 2026-09-12 — Direct implementation by ChatGPT
 
-This file records the engineering state verified from the repository itself. It is intentionally conservative: components are not marked functional unless the source inspected supports that conclusion.
+This document is the public engineering log for the working branch. Status is conservative: a capability is not marked complete unless the source and build support that conclusion.
 
 ### Repository
 - Repository: `MarcosAO2401/Opencode-Yino-AI`
-- Default branch: `main`
+- Default branch: `main` (kept untouched)
 - Working branch: `yino-ai-build-2026`
 - Android application ID: `com.yino.ai`
 - Single Gradle module: `:app`
 
-### Verified stack
-- Kotlin 2.0.21
-- Android Gradle Plugin 8.5.0
-- Compile/target SDK 34
-- Min SDK 26
-- Java/Kotlin JVM target 17
-- Jetpack Compose
-- Hilt
-- Room
-- DataStore
-- WorkManager
-- Ktor
-- Vosk Android
-- Android Biometric
-- JSON schema validation
+### Current verified build
+- GitHub Actions run: #76
+- Result: SUCCESS
+- Gradle build: SUCCESS
+- APK upload step: SUCCESS
+- Artifact: `yino-ai-debug`
+- Artifact status: available
+
+### Implemented in the current development cycle
+- Fixed missing `denyUnknownSpeaker()` compile blocker.
+- Strengthened `AgentLoop` into an explicit observe/plan/action/verification cycle.
+- Added failure-aware replanning instructions after unsuccessful tool executions.
+- Added protection against repeated unknown-tool failures.
+- Added final responses that distinguish verified results from failures.
+- Strengthened `ToolRegistry` to reject execution when a tool declares permissions that are not present in `ToolContext`.
+- Improved tool execution error reporting.
 
 ### Architecture already present
 - `core/agent/AgentLoop.kt`
 - `core/llm/LLMProvider.kt`
-- cloud and local LLM provider classes
+- cloud and local LLM providers
 - `core/tools/Tool` and `ToolRegistry`
 - `core/security/SecurityGate` and `AuditLog`
 - identity providers and `IdentityGate`
 - `automation/YinoAccessibilityService`
 - `automation/ActionExecutor`
-- voice-related package
+- voice/TTS package
 - integrations package
 - memory package
 - Compose UI package
 
-### Important verified observation
-The repository already contains a substantial Yino AI foundation. The current AgentLoop performs repeated LLM/tool steps, invokes SecurityGate before tool execution, records AuditLog entries, and provides the LLM with registered tool specifications. Therefore this is not a blank project and should be evolved rather than rebuilt blindly.
+### Important limitations still open
+- Runtime Android permission state must be connected to `ToolContext` instead of relying on a placeholder set.
+- Some tools remain stubs or partial implementations and require individual verification.
+- Local LLM still depends on an external OpenAI-compatible local server unless an embedded model is added.
+- Vosk model/wake-word flow still needs a real device-tested implementation.
+- Memory is not yet an advanced long-term/contextual memory system.
+- Screen understanding and autonomous UI control need physical-device testing.
+- Secrets should move from plain SharedPreferences to Android Keystore-backed storage before production.
+- UI needs a final premium JARVIS pass after functional capabilities are stabilized.
 
-### Known limitations documented by the project
-The repository README explicitly identifies the local LLM as a stub, speaker verification as needing an on-device model, and facial recognition as delegated to Android system biometrics. These are treated as known engineering gaps, not as completed features.
+## Engineering roadmap
+1. Capability audit and dependency map — IN PROGRESS
+2. Agent planning / verification — IMPLEMENTED, NEEDS DEVICE VALIDATION
+3. Runtime permissions — NEXT
+4. Real Android automation and screen observation — NEXT
+5. Tool-by-tool completion audit — NEXT
+6. Memory and contextual recall — NEXT
+7. Voice / wake word / speaker verification — NEXT
+8. Security hardening and secure secret storage — NEXT
+9. Premium JARVIS UI and interaction states — NEXT
+10. Physical-device test matrix — NEXT
+11. Final APK verification — PENDING
 
-### Build infrastructure
-A GitHub Actions workflow exists at `.github/workflows/build.yml` and runs `./gradlew assembleDebug`, then uploads `app-debug.apk` as an artifact. Actual success/failure still needs to be verified from a workflow run.
-
-## Next engineering phases
-1. Exhaustive source audit and capability matrix.
-2. Verify compilation through GitHub Actions.
-3. Fix build blockers before feature expansion.
-4. Replace stubs only where a real Android-compatible implementation is justified.
-5. Strengthen agent planning, memory, observation and verification.
-6. Harden permissions/security and user confirmation for sensitive actions.
-7. Complete voice, automation and app integrations within Android platform limits.
-8. Test on physical Android hardware.
-9. Produce a verified APK artifact.
-
-No claim of a finished JARVIS-level application is made at this stage.
+### Rule
+A green build means the code compiles and the configured build pipeline succeeds. It does **not** mean Yino AI is finished. The project will only be called complete after the critical capabilities are implemented and tested.
