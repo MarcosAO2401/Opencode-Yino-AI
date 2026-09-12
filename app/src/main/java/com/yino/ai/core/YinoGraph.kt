@@ -53,7 +53,7 @@ object YinoGraph {
         registry.register(OpenUrlTool(appContext)); registry.register(SetVolumeTool(appContext)); registry.register(TakePhotoTool(appContext))
         registry.register(CallTool(appContext)); registry.register(SendEmailTool(appContext)); registry.register(PlayMusicTool(appContext))
         registry.register(NotificationReplyTool(appContext)); registry.register(GoHomeTool()); registry.register(BackTool()); registry.register(ReadScreenTool())
-        registry.register(ReadNotificationsTool()); registry.register(ScrollTool()); registry.register(TapTool()); registry.register(UiClickTool())
+        registry.register(ReadNotificationsTool()); registry.register(ScrollTool()); registry.register(TapTool()); registry.register(UiFindAndClickTool()); registry.register(UiClickTool())
         registry.register(UiTypeTool()); registry.register(UiWaitTool())
     }
 
